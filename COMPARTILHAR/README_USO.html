@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guia de Uso - Pacote HTML Offline</title>
+  <style>
+    :root {
+      --bg: #f4fbf8;
+      --card: #ffffff;
+      --text: #10332b;
+      --muted: #3a5f55;
+      --accent: #1f6f5e;
+      --border: #c7e3db;
+    }
+    @page { size: A4; margin: 16mm; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      line-height: 1.55;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+      break-inside: avoid;
+    }
+    h1 {
+      font-size: 28px;
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+    h2 {
+      font-size: 18px;
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+    p { margin: 6px 0; }
+    ul, ol { margin: 6px 0 0 22px; }
+    li { margin: 4px 0; }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <h1>Guia de Uso</h1>
+      <p class="muted">Pacote de dashboards e relatorios HTML para abertura local, com e sem internet.</p>
+    </section>
+
+    <section class="card">
+      <h2>1. O que este pacote contem</h2>
+      <ul>
+        <li>Arquivos de dashboards e relatorios em HTML.</li>
+        <li>Biblioteca local do Plotly em libs/plotly-2.35.2.min.js.</li>
+        <li>Navegacao entre paginas por links internos.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>2. Requisitos</h2>
+      <ul>
+        <li>Navegador moderno: Chrome, Edge ou Firefox.</li>
+        <li>Nao precisa instalar Python.</li>
+        <li>Nao precisa internet para visualizar os graficos.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>3. Como abrir</h2>
+      <ol>
+        <li>Copie o arquivo zip para o computador de destino.</li>
+        <li>Extraia todo o conteudo em uma pasta.</li>
+        <li>Abra Relatorio_Final_Biorremediacao.html no navegador.</li>
+        <li>Use os links internos para abrir os demais arquivos.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>4. Arquivos principais</h2>
+      <ul>
+        <li>Relatorio_Final_Biorremediacao.html (entrada recomendada)</li>
+        <li>Dashboard_Biomassa_COM_NaNO3.html</li>
+        <li>Dashboard_PAM.html</li>
+        <li>Dashboard_Consolidado_Biorremediacao.html</li>
+        <li>Dashboard_Biorremediacao.html</li>
+        <li>Relatorio_PostHoc.html</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>5. Tema claro e escuro</h2>
+      <p>Clique no botao de tema no topo da pagina. A preferencia fica salva no navegador daquele computador.</p>
+    </section>
+
+    <section class="card">
+      <h2>6. Cuidados importantes</h2>
+      <ul>
+        <li>Mantenha a estrutura original da pasta.</li>
+        <li>Nao remover a pasta libs.</li>
+        <li>Sem libs, os graficos nao carregam.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>7. Problemas comuns e solucoes</h2>
+      <p><strong>Pagina abre sem grafico:</strong> confirme se extraiu o zip completo e se a pasta libs existe.</p>
+      <p><strong>Links nao abrem:</strong> mantenha todos os HTML na mesma pasta e nao renomeie arquivos.</p>
+      <p><strong>Layout estranho:</strong> teste em Chrome ou Edge atualizados e reabra o navegador.</p>
+    </section>
+
+    <section class="card">
+      <h2>8. Compartilhamento recomendado</h2>
+      <p>Compartilhe o arquivo zip final. O destinatario deve extrair antes de usar.</p>
+    </section>
+
+    <section class="card">
+      <h2>9. Checklist rapido</h2>
+      <ul>
+        <li>Tema claro e escuro funcionando.</li>
+        <li>Graficos carregando normalmente.</li>
+        <li>Links internos abrindo os demais paineis.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

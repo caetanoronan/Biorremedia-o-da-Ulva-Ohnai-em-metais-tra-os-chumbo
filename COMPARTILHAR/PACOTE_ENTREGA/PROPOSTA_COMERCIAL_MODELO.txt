@@ -1,0 +1,116 @@
+PROPOSTA COMERCIAL
+Projeto de Analise de Dados + Dashboards + Relatorios
+
+Data: ____/____/______
+Proposta no: ________
+Validade da proposta: 15 dias
+
+DADOS DO CONTRATANTE
+Cliente: _________________________________
+Responsavel: _____________________________
+E-mail: __________________________________
+Telefone: _________________________________
+
+DADOS DO PROPONENTE
+Nome/Empresa: ____________________________
+Responsavel: _____________________________
+E-mail: __________________________________
+Telefone: _________________________________
+Cidade/UF: _______________________________
+
+1) OBJETIVO
+Desenvolver um pacote completo de analise e apresentacao de resultados, incluindo:
+- tratamento e organizacao dos dados;
+- analise estatistica;
+- dashboards interativos em HTML;
+- relatorios tecnicos em HTML/PDF;
+- empacotamento final para compartilhamento simples.
+
+2) ESCOPO DA ENTREGA
+2.1 Etapa 1 - Descoberta e organizacao de dados
+- entendimento do problema e dos objetivos do cliente;
+- validacao dos arquivos recebidos (formatos e consistencia);
+- preparacao da base para analise.
+
+2.2 Etapa 2 - Analise estatistica
+- estatistica descritiva;
+- testes comparativos (quando aplicavel);
+- tabelas de apoio e interpretacao tecnica.
+
+2.3 Etapa 3 - Dashboards e relatorios
+- dashboards HTML interativos para visualizacao dos resultados;
+- relatorio final consolidado com explicacoes didaticas;
+- versao preparada para abrir em outro computador.
+
+2.4 Etapa 4 - Entrega e documentacao
+- pacote unico para compartilhamento;
+- guia de uso (TXT e PDF);
+- orientacao de abertura e navegacao.
+
+3) ITENS INCLUSOS
+- ate 4 dashboards HTML
+- 2 relatorios HTML
+- 1 guia de uso em TXT e PDF
+- 1 pacote final em ZIP para compartilhamento
+- ate 2 rodadas de ajuste apos primeira entrega
+
+4) ITENS NAO INCLUSOS (PODEM SER CONTRATADOS A PARTE)
+- coleta de novos dados em campo/laboratorio;
+- desenvolvimento de sistema web com hospedagem online;
+- manutencao mensal continua sem contrato recorrente;
+- integracao com banco de dados/API em tempo real.
+
+5) PRAZO ESTIMADO
+Prazo total: 7 a 15 dias uteis
+Cronograma sugerido:
+- Dia 1 a 3: organizacao e validacao dos dados
+- Dia 4 a 8: analise e primeira versao dos paineis
+- Dia 9 a 12: ajustes e consolidacao
+- Dia 13 a 15: entrega final e documentacao
+
+Observacao: o prazo pode variar conforme qualidade dos dados e tempo de retorno do cliente nas validacoes.
+
+6) INVESTIMENTO
+Opcao A - Pacote Essencial: R$ 2.500,00
+- escopo base com menor nivel de customizacao visual.
+
+Opcao B - Pacote Profissional (recomendado): R$ 4.200,00
+- escopo completo, refinamento visual, relatorio consolidado e empacotamento final.
+
+Opcao C - Pacote Premium: R$ 6.800,00
+- escopo completo + maior profundidade estatistica + rodada extra de refinamento.
+
+7) CONDICOES DE PAGAMENTO
+Modelo recomendado:
+- 50% na aprovacao da proposta (inicio do projeto)
+- 30% na entrega da primeira versao validavel
+- 20% na entrega final
+
+Forma de pagamento:
+- PIX / transferencia / boleto (a combinar)
+
+8) GARANTIA E SUPORTE
+- 7 dias corridos de suporte pos-entrega para correcao de eventuais inconsistencias de implementacao.
+- ajustes de escopo novo serao orcados separadamente.
+
+9) CONFIDENCIALIDADE
+Todas as informacoes e dados compartilhados pelo cliente serao tratados com confidencialidade e uso exclusivo para execucao deste projeto.
+
+10) ACEITE
+Ao aprovar esta proposta, o cliente concorda com escopo, prazo, investimento e condicoes aqui descritas.
+
+Assinatura do cliente: _____________________________
+Nome: ____________________________________________
+Data: ____/____/______
+
+Assinatura do proponente: _________________________
+Nome: ____________________________________________
+Data: ____/____/______
+
+ANEXO - OPCIONAL (MANUTENCAO MENSAL)
+Plano Mensal Basico: R$ 600,00/mes
+- ate 4 horas/mes para pequenas atualizacoes.
+
+Plano Mensal Avancado: R$ 1.800,00/mes
+- ate 12 horas/mes;
+- prioridade em ajustes e evolucoes.

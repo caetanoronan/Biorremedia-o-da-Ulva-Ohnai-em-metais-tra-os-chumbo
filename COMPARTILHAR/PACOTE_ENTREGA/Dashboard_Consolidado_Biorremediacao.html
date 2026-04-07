@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Consolidado - Biorremediação</title>
+  <script src="libs/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #e5f5f9 0%, #99d8c9 100%);
+      --surface: #ffffff;
+      --text: #16352d;
+      --muted: #3f5d55;
+      --line: #bcded4;
+      --primary: #2ca25f;
+      --primary-strong: #238b45;
+      --focus: #66c2a4;
+      --shadow: 0 10px 24px rgba(23, 74, 57, 0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 1600px; margin: 0 auto; }
+    header {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+    header h1 { color: var(--primary); margin-bottom: 8px; font-size: 2.1em; }
+    header p { color: var(--muted); font-size: 1.05em; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border-left: 6px solid #66c2a4;
+      border: 1px solid var(--line);
+    }
+    .card h3 { color: var(--primary); font-size: 0.95em; margin-bottom: 8px; text-transform: uppercase; }
+    .card .value { color: #0e3659; font-weight: 700; font-size: 1.8em; }
+    .card .sub { color: var(--muted); font-size: 0.9em; margin-top: 4px; }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+    .panel h2 { color: var(--primary); margin-bottom: 12px; font-size: 1.25em; }
+
+    .didactic-panel {
+      background: #eefaf6;
+      border-left: 5px solid #66c2a4;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 20px;
+      color: #2a554a;
+      line-height: 1.6;
+    }
+
+    .corr-panel {
+      background: #f2fbf8;
+      border: 1px solid #d9efe8;
+      border-left: 5px solid #2ca25f;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      color: #2a554a;
+      line-height: 1.65;
+    }
+
+    .corr-panel h3 {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 1.05em;
+    }
+
+    .corr-panel ul { margin: 6px 0 0 18px; }
+
+    .explain-box {
+      background: #f2fbf8;
+      border: 1px solid #d9efe8;
+      border-left: 5px solid #2ca25f;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 12px 0 0;
+      color: #2a554a;
+      line-height: 1.65;
+      font-size: 0.95em;
+    }
+
+    .explain-box p {
+      margin: 0 0 6px;
+    }
+
+    .explain-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .glossary-collapsible {
+      background: var(--surface);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      border-left: 5px solid #66c2a4;
+      margin-top: 20px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .glossary-collapsible summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary);
+      background: #f2fbf8;
+      border-bottom: 1px solid #d9efe8;
+    }
+
+    .glossary-collapsible summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .glossary-content {
+      padding: 14px 20px 18px;
+    }
+
+    .glossary-content p {
+      margin-bottom: 8px;
+      color: #3f5168;
+      line-height: 1.6;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 16px;
+    }
+
+    .chart {
+      width: 100%;
+      height: 360px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .chart .js-plotly-plot,
+    .chart .plot-container,
+    .chart .svg-container {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #e7edf3; text-align: left; font-size: 0.92em; }
+    th { background: #e5f5f9; color: #1e5f47; }
+    tr:nth-child(even) { background: #fbfefc; }
+    tr:hover { background: #f3fbf8; }
+
+    .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      background: var(--primary);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    .btn:hover { background: var(--primary-strong); }
+
+    .btn:focus-visible,
+    .glossary-collapsible summary:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      background: var(--surface);
+      color: var(--primary);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    html[data-theme='dark'] {
+      --bg: linear-gradient(135deg, #0f1f1a 0%, #173229 100%);
+      --surface: #132923;
+      --text: #e8f5ef;
+      --muted: #b4d1c4;
+      --line: #2b5143;
+      --primary: #66c2a4;
+      --primary-strong: #99d8c9;
+      --focus: #ccece6;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    html[data-theme='dark'] .card .value,
+    html[data-theme='dark'] .didactic-panel,
+    html[data-theme='dark'] .explain-box,
+    html[data-theme='dark'] .glossary-content p {
+      color: #d6ebe2;
+    }
+
+    html[data-theme='dark'] .didactic-panel {
+      background: #173228;
+      border-left-color: #66c2a4;
+    }
+
+    html[data-theme='dark'] .corr-panel {
+      background: #173228;
+      border-color: #2b5143;
+      border-left-color: #66c2a4;
+      color: #dff2e9;
+    }
+
+    html[data-theme='dark'] .corr-panel h3 { color: #ccece6; }
+
+    html[data-theme='dark'] .explain-box {
+      background: #173228;
+      border-color: #2b5143;
+      border-left-color: #66c2a4;
+    }
+
+    html[data-theme='dark'] .glossary-collapsible {
+      background: #132923;
+      border-color: #2b5143;
+      border-left-color: #66c2a4;
+    }
+
+    html[data-theme='dark'] .glossary-collapsible summary {
+      background: #173228;
+      color: #d8efe6;
+      border-bottom-color: #2b5143;
+    }
+
+    html[data-theme='dark'] th,
+    html[data-theme='dark'] td {
+      border-bottom-color: var(--line);
+    }
+
+    html[data-theme='dark'] th {
+      background: #1a3a30;
+      color: #d8efe6;
+    }
+
+    html[data-theme='dark'] tr:nth-child(even) {
+      background: #173228;
+    }
+
+    html[data-theme='dark'] tr:hover {
+      background: #1d3d32;
+    }
+
+    @media (max-width: 768px) {
+      .chart { height: 320px; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" type="button">🌙 Escuro</button>
+  <div class="container">
+    <header>
+      <h1>Dashboard Consolidado - Biorremediação</h1>
+      <p>Síntese integrada de Biomassa e PAM com comparação entre tratamentos SEM vs COM NaNO3.</p>
+    </header>
+
+    <section class="didactic-panel">
+      <strong>📘 Leitura Guiada:</strong> veja primeiro as barras de efeito (%), depois confirme os valores na tabela.
+      Valores positivos indicam ganho com NaNO3; valores negativos indicam redução.
+    </section>
+
+    <section class="corr-panel">
+      <h3>🔗 Interpretação de Correlações (Guia Rápido)</h3>
+      <ul>
+        <li>Correlação indica como duas variáveis variam juntas (direção e força da relação).</li>
+        <li>Coeficiente próximo de +1: relação positiva forte; próximo de -1: negativa forte; próximo de 0: fraca.</li>
+        <li>Correlação não implica causalidade.</li>
+        <li>Use sempre p-valor e n para avaliar confiança no resultado.</li>
+        <li>Interprete no contexto biológico: ganhos de biomassa podem ou não acompanhar ganhos de PAM dependendo do grupo.</li>
+      </ul>
+    </section>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Total de análises</h3>
+        <div class="value">4 fases</div>
+        <div class="sub">Biomassa, PAM, comparação e dashboards</div>
+      </div>
+      <div class="card">
+        <h3>Maior ganho em Biomassa</h3>
+        <div class="value">179.49%</div>
+        <div class="sub">Grupo C1 com NaNO3</div>
+      </div>
+      <div class="card">
+        <h3>Maior ganho em PAM Final</h3>
+        <div class="value">143.76%</div>
+        <div class="sub">Grupo C1 com NaNO3</div>
+      </div>
+      <div class="card">
+        <h3>Amostras comparadas</h3>
+        <div class="value">8 linhas</div>
+        <div class="sub">4 grupos x 2 variáveis finais</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Efeito do NaNO3 por grupo</h2>
+      <div class="grid-2">
+        <div>
+          <h3 style="color:#2ca25f; margin-bottom:6px;">Biomassa Final (Efeito %)</h3>
+          <div id="chartBiomassaPct" class="chart"></div>
+        </div>
+        <div>
+          <h3 style="color:#2ca25f; margin-bottom:6px;">PAM Final (Efeito %)</h3>
+          <div id="chartPamPct" class="chart"></div>
+        </div>
+      </div>
+      <div class="explain-box">
+        <p><strong>Como interpretar os graficos:</strong> cada barra representa o efeito percentual do NaNO3 em relacao ao tratamento SEM NaNO3 no mesmo grupo.</p>
+        <p><strong>Valor positivo:</strong> indica ganho (aumento da Biomassa Final ou do PAM Final).</p>
+        <p><strong>Valor negativo:</strong> indica reducao com NaNO3 naquele grupo.</p>
+        <p><strong>Leitura deste resultado:</strong> C1 apresenta os maiores ganhos em Biomassa e PAM; em PAM do grupo C3, o efeito e levemente negativo (-0.36%), sugerindo estabilidade sem beneficio relevante.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Tabela comparativa consolidada</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Grupo</th>
+            <th>Variável</th>
+            <th>SEM NaNO3</th>
+            <th>COM NaNO3</th>
+            <th>Efeito</th>
+            <th>Efeito %</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaComparativa"></tbody>
+      </table>
+      <div class="explain-box">
+        <p><strong>Como interpretar a tabela:</strong> cada linha compara SEM vs COM NaNO3 para uma variavel (Biomassa Final ou PAM Final) dentro de um grupo.</p>
+        <p><strong>SEM NaNO3 / COM NaNO3:</strong> medias observadas em cada condicao.</p>
+        <p><strong>Efeito:</strong> diferenca absoluta, calculada como COM - SEM.</p>
+        <p><strong>Efeito %:</strong> diferenca relativa em porcentagem, mostrando o tamanho do ganho ou perda em termos proporcionais.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Navegação dos dashboards detalhados</h2>
+      <div class="links">
+        <a class="btn" href="Dashboard_Biomassa_COM_NaNO3.html" target="_blank">Abrir Biomassa</a>
+        <a class="btn" href="Dashboard_PAM.html" target="_blank">Abrir PAM</a>
+        <a class="btn" href="Dashboard_Biorremediacao.html" target="_blank">Abrir Biorremediação</a>
+      </div>
+    </section>
+
+    <details class="glossary-collapsible">
+      <summary>📚 Glossário Completo (clique para abrir/fechar)</summary>
+      <div class="glossary-content">
+        <p><strong>Biomassa:</strong> medida da massa do material biológico (neste estudo, em gramas).</p>
+        <p><strong>Fv/Fm:</strong> índice de eficiência fotossintética; valores maiores indicam melhor desempenho do sistema fotossintético.</p>
+        <p><strong>Média:</strong> soma dos valores dividida pelo número de amostras.</p>
+        <p><strong>Mediana:</strong> valor central do grupo (metade dos dados fica acima e metade abaixo).</p>
+        <p><strong>Distribuição individual:</strong> visualização de cada amostra separadamente, útil para ver espalhamento real.</p>
+        <p><strong>Boxplot:</strong> gráfico que resume posição central (mediana), variação e possíveis valores extremos.</p>
+        <p><strong>Outlier:</strong> valor muito fora do padrão do grupo, que pode distorcer a interpretação.</p>
+        <p><strong>Erro padrão:</strong> estimativa da incerteza da média; menor erro indica média mais estável.</p>
+        <p><strong>p-valor:</strong> probabilidade de observar diferença por acaso; p menor que 0.05 costuma indicar diferença real.</p>
+        <p><strong>Significativo:</strong> quando o teste estatístico detecta evidência de diferença entre grupos.</p>
+        <p><strong>ANOVA:</strong> teste que compara médias entre três ou mais grupos.</p>
+        <p><strong>Kruskal-Wallis:</strong> alternativa não paramétrica da ANOVA, usada quando os dados não seguem normalidade.</p>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    const dadosBiomassa = [{"Grupo": "C0", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.1674, "Com_NaNO3": 0.2679, "Efeito": 0.1005, "Efeito_Pct": 60.04}, {"Grupo": "C1", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.1886, "Com_NaNO3": 0.5271, "Efeito": 0.3385, "Efeito_Pct": 179.49}, {"Grupo": "C2", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.2329, "Com_NaNO3": 0.3505, "Efeito": 0.1176, "Efeito_Pct": 50.49}, {"Grupo": "C3", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.3323, "Com_NaNO3": 0.736, "Efeito": 0.4037, "Efeito_Pct": 121.49}];
+    const dadosPam = [{"Grupo": "C0", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.2472, "Com_NaNO3": 0.4917, "Efeito": 0.2445, "Efeito_Pct": 98.92}, {"Grupo": "C1", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.2221, "Com_NaNO3": 0.5413, "Efeito": 0.3192, "Efeito_Pct": 143.76}, {"Grupo": "C2", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.2525, "Com_NaNO3": 0.4635, "Efeito": 0.211, "Efeito_Pct": 83.56}, {"Grupo": "C3", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.434, "Com_NaNO3": 0.4324, "Efeito": -0.0016, "Efeito_Pct": -0.36}];
+    const dadosTabela = [{"Grupo": "C0", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.1674, "Com_NaNO3": 0.2679, "Efeito": 0.1005, "Efeito_Pct": 60.04}, {"Grupo": "C0", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.2472, "Com_NaNO3": 0.4917, "Efeito": 0.2445, "Efeito_Pct": 98.92}, {"Grupo": "C1", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.1886, "Com_NaNO3": 0.5271, "Efeito": 0.3385, "Efeito_Pct": 179.49}, {"Grupo": "C1", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.2221, "Com_NaNO3": 0.5413, "Efeito": 0.3192, "Efeito_Pct": 143.76}, {"Grupo": "C2", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.2329, "Com_NaNO3": 0.3505, "Efeito": 0.1176, "Efeito_Pct": 50.49}, {"Grupo": "C2", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.2525, "Com_NaNO3": 0.4635, "Efeito": 0.211, "Efeito_Pct": 83.56}, {"Grupo": "C3", "Variavel": "Biomassa Final", "Sem_NaNO3": 0.3323, "Com_NaNO3": 0.736, "Efeito": 0.4037, "Efeito_Pct": 121.49}, {"Grupo": "C3", "Variavel": "PAM Final (Fv/Fm)", "Sem_NaNO3": 0.434, "Com_NaNO3": 0.4324, "Efeito": -0.0016, "Efeito_Pct": -0.36}];
+
+    function plotar() {
+      const layoutBase = {
+        autosize: true,
+        margin: { l: 45, r: 20, t: 15, b: 45 },
+        yaxis: { title: 'Efeito (%)' },
+        xaxis: { title: 'Grupo' }
+      };
+
+      Plotly.newPlot('chartBiomassaPct', [{
+        x: dadosBiomassa.map(d => d.Grupo),
+        y: dadosBiomassa.map(d => d.Efeito_Pct),
+        type: 'bar',
+        marker: { color: '#99d8c9' },
+        text: dadosBiomassa.map(d => `${d.Efeito_Pct.toFixed(2)}%`),
+        textposition: 'outside'
+      }], layoutBase, { responsive: true });
+
+      Plotly.newPlot('chartPamPct', [{
+        x: dadosPam.map(d => d.Grupo),
+        y: dadosPam.map(d => d.Efeito_Pct),
+        type: 'bar',
+        marker: { color: '#2ca25f' },
+        text: dadosPam.map(d => `${d.Efeito_Pct.toFixed(2)}%`),
+        textposition: 'outside'
+      }], layoutBase, { responsive: true });
+    }
+
+    function preencherTabela() {
+      const tbody = document.getElementById('tabelaComparativa');
+      dadosTabela.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${r.Grupo}</strong></td>
+          <td>${r.Variavel}</td>
+          <td>${Number(r.Sem_NaNO3).toFixed(4)}</td>
+          <td>${Number(r.Com_NaNO3).toFixed(4)}</td>
+          <td>${Number(r.Efeito).toFixed(4)}</td>
+          <td>${Number(r.Efeito_Pct).toFixed(2)}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function resizeCharts() {
+      ['chartBiomassaPct', 'chartPamPct'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.data) Plotly.Plots.resize(el);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      preencherTabela();
+      plotar();
+      setTimeout(resizeCharts, 80);
+    });
+
+    window.addEventListener('resize', resizeCharts);
+
+    (function() {
+      const root = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const saved = localStorage.getItem('theme-preference') || 'light';
+
+      root.setAttribute('data-theme', saved);
+      btn.textContent = saved === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+
+      btn.addEventListener('click', function() {
+        const current = root.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme-preference', next);
+        btn.textContent = next === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+        setTimeout(resizeCharts, 50);
+      });
+    })();
+  </script>
+</body>
+</html>
