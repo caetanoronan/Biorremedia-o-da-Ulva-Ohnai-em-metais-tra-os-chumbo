@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang='pt-BR'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Relatorio Post-Hoc</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #16352d; background: #e5f5f9; }
+    h1 { color: #1f6a4d; }
+    .info {
+      background: #f2fbf8;
+      border: 1px solid #bcded4;
+      border-left: 5px solid #2ca25f;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 10px 0 14px;
+      line-height: 1.6;
+    }
+    .info p { margin: 0 0 6px; }
+    .info p:last-child { margin-bottom: 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+    th, td { border-bottom: 1px solid #bcded4; padding: 8px; text-align: left; font-size: 14px; }
+    th { background: #e5f5f9; color: #1e5f47; }
+
+    .theme-toggle {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      background: #fff;
+      color: #2ca25f;
+      border: 1px solid #bcded4;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(23, 74, 57, 0.12);
+    }
+
+    html[data-theme='dark'] body {
+      background: #0f1f1a;
+      color: #e8f5ef;
+    }
+
+    html[data-theme='dark'] h1 {
+      color: #ccece6;
+    }
+
+    html[data-theme='dark'] .info {
+      background: #173228;
+      border-color: #2b5143;
+      border-left-color: #66c2a4;
+      color: #d6ebe2;
+    }
+
+    html[data-theme='dark'] th,
+    html[data-theme='dark'] td {
+      border-bottom-color: #2b5143;
+    }
+
+    html[data-theme='dark'] th {
+      background: #1a3a30;
+      color: #d8efe6;
+    }
+
+    html[data-theme='dark'] tbody tr:nth-child(even) {
+      background: #173228;
+    }
+
+    html[data-theme='dark'] tbody tr:hover {
+      background: #1d3d32;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" type="button">🌙 Escuro</button>
+  <h1>Relatorio Final - Testes Post-Hoc</h1>
+  <div class="info">
+    <p><strong>O que e Post-hoc:</strong> e uma etapa feita depois de um teste global significativo (como ANOVA ou Kruskal-Wallis) para descobrir exatamente quais pares de grupos diferem entre si.</p>
+    <p><strong>Metodo usado:</strong> comparacoes pareadas com correcao de Bonferroni (teste U de Mann-Whitney e t de Welch).</p>
+    <p><strong>Por que usar Bonferroni:</strong> quando fazemos muitas comparacoes ao mesmo tempo, aumenta o risco de falso positivo. A correcao deixa o criterio mais rigoroso ao ajustar os p-valores.</p>
+    <p><strong>Interpretacao pratica:</strong> o resultado "Sim" na coluna Significativo indica que aquela diferenca entre dois grupos permaneceu estatisticamente relevante mesmo apos a correcao.</p>
+  </div>
+
+  <div class="info">
+    <p><strong>Como ler a tabela:</strong></p>
+    <p><strong>Contexto:</strong> bloco da analise (ex.: PAM SEM NaNO3, PAM COM NaNO3, Biomassa COM NaNO3).</p>
+    <p><strong>Variavel:</strong> momento/medida comparada (inicial, final ou mudanca).</p>
+    <p><strong>Comparacao:</strong> par de grupos testado (ex.: C1 vs C3).</p>
+    <p><strong>p-ajustado (U):</strong> p-valor do teste de Mann-Whitney apos Bonferroni; quanto menor, maior evidencia de diferenca.</p>
+    <p><strong>Significativo:</strong> "Sim" quando p-ajustado < 0.05.</p>
+  </div>
+
+  <div class="info">
+    <p><strong>Resumo rapido dos achados post-hoc:</strong></p>
+    <p>Total de comparacoes pareadas: <strong>30</strong>.</p>
+    <p>Comparacoes significativas apos Bonferroni: <strong>9</strong> (30.0%).</p>
+    <p>As diferencas significativas se concentram nas comparacoes envolvendo o <strong>grupo C3</strong>, principalmente em <strong>PAM SEM NaNO3 (final e mudanca)</strong>.</p>
+  </div>
+
+  <div class="info">
+    <p><strong>Nota sobre correlacoes:</strong></p>
+    <p>Correlacao indica associacao entre variaveis (direcao e intensidade), mas nao comprova causalidade.</p>
+    <p>Ao reportar correlacoes no estudo, apresente o coeficiente, o p-valor e o tamanho amostral (n) para uma interpretacao confiavel.</p>
+  </div>
+
+  <p>Arquivos exportados: PostHoc_Comparacoes.csv, PostHoc_Resumo.csv, PostHoc_Comparacoes.xlsx.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Contexto</th><th>Variavel</th><th>Comparacao</th><th>p-ajustado (U)</th><th>Significativo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Biomassa COM NaNO3</td><td>inicial</td><td>C0 vs C1</td><td>0.5176</td><td>Nao</td></tr>
+<tr><td>Biomassa COM NaNO3</td><td>inicial</td><td>C0 vs C2</td><td>0.7826</td><td>Nao</td></tr>
+<tr><td>Biomassa COM NaNO3</td><td>inicial</td><td>C0 vs C3</td><td>0.0060</td><td>Sim</td></tr>
+<tr><td>Biomassa COM NaNO3</td><td>inicial</td><td>C1 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>Biomassa COM NaNO3</td><td>inicial</td><td>C1 vs C3</td><td>0.1195</td><td>Nao</td></tr>
+<tr><td>Biomassa COM NaNO3</td><td>inicial</td><td>C2 vs C3</td><td>0.2704</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>final</td><td>C0 vs C1</td><td>0.2709</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>final</td><td>C0 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>final</td><td>C0 vs C3</td><td>0.0132</td><td>Sim</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>final</td><td>C1 vs C2</td><td>0.9718</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>final</td><td>C1 vs C3</td><td>0.0102</td><td>Sim</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>final</td><td>C2 vs C3</td><td>0.0275</td><td>Sim</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>mudanca</td><td>C0 vs C1</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>mudanca</td><td>C0 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>mudanca</td><td>C0 vs C3</td><td>0.0020</td><td>Sim</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>mudanca</td><td>C1 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>mudanca</td><td>C1 vs C3</td><td>0.0035</td><td>Sim</td></tr>
+<tr><td>PAM SEM NaNO3</td><td>mudanca</td><td>C2 vs C3</td><td>0.0102</td><td>Sim</td></tr>
+<tr><td>PAM COM NaNO3</td><td>inicial</td><td>C0 vs C1</td><td>0.7826</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>inicial</td><td>C0 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>inicial</td><td>C0 vs C3</td><td>0.0547</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>inicial</td><td>C1 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>inicial</td><td>C1 vs C3</td><td>0.0275</td><td>Sim</td></tr>
+<tr><td>PAM COM NaNO3</td><td>inicial</td><td>C2 vs C3</td><td>0.1873</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>mudanca</td><td>C0 vs C1</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>mudanca</td><td>C0 vs C2</td><td>1.0000</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>mudanca</td><td>C0 vs C3</td><td>0.3234</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>mudanca</td><td>C1 vs C2</td><td>0.9718</td><td>Nao</td></tr>
+<tr><td>PAM COM NaNO3</td><td>mudanca</td><td>C1 vs C3</td><td>0.0060</td><td>Sim</td></tr>
+<tr><td>PAM COM NaNO3</td><td>mudanca</td><td>C2 vs C3</td><td>0.5338</td><td>Nao</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    (function() {
+      const root = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const saved = localStorage.getItem('theme-preference') || 'light';
+
+      root.setAttribute('data-theme', saved);
+      btn.textContent = saved === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+
+      btn.addEventListener('click', function() {
+        const current = root.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme-preference', next);
+        btn.textContent = next === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+      });
+    })();
+  </script>
+</body>
+</html>

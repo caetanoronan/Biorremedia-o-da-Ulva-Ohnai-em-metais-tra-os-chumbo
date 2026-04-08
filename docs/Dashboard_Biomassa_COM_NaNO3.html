@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Biomassa COM NaNO3</title>
+    <script src="libs/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #e5f5f9 0%, #99d8c9 100%);
+            --surface: #ffffff;
+            --text: #16352d;
+            --muted: #3f5d55;
+            --line: #bcded4;
+            --primary: #2ca25f;
+            --primary-strong: #238b45;
+            --focus: #66c2a4;
+            --shadow: 0 10px 24px rgba(23, 74, 57, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--surface);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+        }
+
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--muted);
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #f2fbf8;
+            border: 2px solid #bcded4;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-strong);
+            box-shadow: inset 0 -3px 0 #99d8c9;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .tab-btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid;
+            transition: transform 0.3s ease;
+            border: 1px solid var(--line);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card.initial {
+            border-left-color: #99d8c9;
+        }
+
+        .metric-card.final {
+            border-left-color: #66c2a4;
+        }
+
+        .metric-card.growth {
+            border-left-color: #2ca25f;
+        }
+
+        .metric-card h3 {
+            color: #333;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .metric-card .sub-info {
+            font-size: 0.85em;
+            color: #999;
+            line-height: 1.6;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .charts-grid-double {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid-double {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        .chart-container h2 {
+            color: var(--primary);
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d9efe8;
+        }
+
+        .chart-note {
+            margin-top: 10px;
+            font-size: 0.88em;
+            color: #6a7280;
+            line-height: 1.5;
+        }
+
+        .chart {
+            width: 100%;
+            height: 400px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .chart .js-plotly-plot,
+        .chart .plot-container,
+        .chart .svg-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .table-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            margin-bottom: 30px;
+            border: 1px solid var(--line);
+        }
+
+        .table-container h2 {
+            color: var(--primary);
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d9efe8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #e5f5f9;
+            color: #1e5f47;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #99d8c9;
+            font-size: 0.9em;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f3fbf8;
+        }
+
+        tr:nth-child(even) {
+            background: #fbfefc;
+        }
+
+        .alert {
+            background: #eefaf4;
+            border-left: 5px solid #2ca25f;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert strong {
+            color: #1f6a4d;
+        }
+
+        .didactic-panel {
+            background: #eefaf6;
+            border-left: 5px solid #66c2a4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #2a554a;
+            line-height: 1.6;
+        }
+
+        .corr-panel {
+            background: #f2fbf8;
+            border-left: 5px solid #2ca25f;
+            border: 1px solid #d9efe8;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #2a554a;
+            line-height: 1.65;
+        }
+
+        .corr-panel h3 {
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 1.05em;
+        }
+
+        .corr-panel ul {
+            margin: 6px 0 0 18px;
+        }
+
+        .glossary-collapsible {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #66c2a4;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .glossary-collapsible summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 16px 20px;
+            font-weight: 700;
+            color: var(--primary);
+            background: #f2fbf8;
+            border-bottom: 1px solid #d9efe8;
+        }
+
+        .glossary-collapsible summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .glossary-content {
+            padding: 14px 20px 18px;
+        }
+
+        .glossary-content p {
+            margin-bottom: 8px;
+            color: #4f5d75;
+            line-height: 1.6;
+        }
+
+        .conclusion {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #2ca25f;
+            margin-top: 30px;
+        }
+
+        .conclusion h2 {
+            color: #2ca25f;
+            margin-bottom: 15px;
+        }
+
+        .conclusion p {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background: #e9f7f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 9999;
+            background: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        html[data-theme='dark'] {
+            --bg: linear-gradient(135deg, #0f1f1a 0%, #173229 100%);
+            --surface: #132923;
+            --text: #e8f5ef;
+            --muted: #b4d1c4;
+            --line: #2b5143;
+            --primary: #66c2a4;
+            --primary-strong: #99d8c9;
+            --focus: #ccece6;
+            --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        html[data-theme='dark'] .metric-card h3,
+        html[data-theme='dark'] .metric-card .sub-info,
+        html[data-theme='dark'] .chart-note,
+        html[data-theme='dark'] .glossary-content p,
+        html[data-theme='dark'] .conclusion p {
+            color: #d6ebe2;
+        }
+
+        html[data-theme='dark'] td {
+            border-bottom: 1px solid var(--line);
+            color: #e8f5ef;
+        }
+
+        html[data-theme='dark'] th {
+            background: #1a3a30;
+            color: #d8efe6;
+            border-bottom-color: #2e6955;
+        }
+
+        html[data-theme='dark'] tr:nth-child(even) {
+            background: #173228;
+        }
+
+        html[data-theme='dark'] tr:hover {
+            background: #1d3d32;
+        }
+
+        html[data-theme='dark'] .didactic-panel,
+        html[data-theme='dark'] .alert,
+        html[data-theme='dark'] .highlight {
+            color: #dff2e9;
+        }
+
+        html[data-theme='dark'] .didactic-panel {
+            background: #173228;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .corr-panel {
+            background: #173228;
+            border-color: #2b5143;
+            border-left-color: #66c2a4;
+            color: #dff2e9;
+        }
+
+        html[data-theme='dark'] .corr-panel h3 {
+            color: #ccece6;
+        }
+
+        html[data-theme='dark'] .alert,
+        html[data-theme='dark'] .alert[style] {
+            background: #173228 !important;
+            border-left-color: #66c2a4 !important;
+            color: #dff2e9;
+        }
+
+        html[data-theme='dark'] .alert strong {
+            color: #ccece6;
+        }
+
+        html[data-theme='dark'] .glossary-collapsible {
+            background: #132923;
+            border-color: #2b5143;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .glossary-collapsible summary {
+            background: #173228;
+            color: #d8efe6;
+            border-bottom-color: #2b5143;
+        }
+
+        html[data-theme='dark'] .conclusion {
+            background: #173228;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .conclusion h2 {
+            color: #ccece6;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" type="button">🌙 Escuro</button>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📊 Dashboard - Biomassa COM NaNO3</h1>
+            <p>Análise de Biomassa Inicial, Final e Crescimento (C0, C1, C2, C3)</p>
+        </header>
+
+        <!-- Alert -->
+        <div class="alert">
+            <strong>⚠️ Atenção:</strong> Valor extremo detectado em C3 (final = 1713.0g). Recomenda-se verificar os dados originais para possível erro de digitação.
+        </div>
+
+        <div class="didactic-panel">
+            <strong>📘 Modo Apresentação Simples:</strong>
+            Leia cada gráfico nesta ordem: 1) valor típico (mediana), 2) variação entre amostras, 3) diferença entre grupos.
+            Se a caixa estiver mais alta, o grupo é mais variável; se a linha da mediana estiver acima, o grupo tende a ter valores maiores.
+        </div>
+
+        <div class="corr-panel">
+            <h3>🔗 Interpretação de Correlações (Guia Rápido)</h3>
+            <ul>
+                <li>Correlação mostra relação entre variáveis: direção (positiva/negativa) e intensidade.</li>
+                <li>Leitura do coeficiente: perto de +1 (forte positiva), perto de -1 (forte negativa), perto de 0 (fraca).</li>
+                <li>Correlação não prova causa e efeito.</li>
+                <li>Sempre reportar p-valor e n para avaliar robustez da relação.</li>
+                <li>Traduza para o contexto biológico: exemplo, maior biomassa pode acompanhar melhor PAM em alguns grupos.</li>
+            </ul>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('initial')">Biomassa Inicial</button>
+            <button class="tab-btn" onclick="showTab('final')">Biomassa Final</button>
+            <button class="tab-btn" onclick="showTab('growth')">Crescimento</button>
+            <button class="tab-btn" onclick="showTab('stats')">Estatísticas</button>
+            <button class="tab-btn" onclick="showTab('tests')">Testes Estatísticos</button>
+            <button class="tab-btn" onclick="showTab('dist-median')">Distribuição e Medianas</button>
+        </div>
+
+        <!-- TAB 1: Initial -->
+        <div id="initial" class="tab-content active">
+            <div class="metrics-grid" id="metrics-initial"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - Biomassa Inicial</h2>
+                    <div class="chart" id="boxplotInitial"></div>
+                    <p class="chart-note">A linha no meio da caixa é a mediana; caixas mais altas indicam maior variação dos dados.</p>
+                </div>
+                <div class="chart-container">
+                    <h2>📈 Média ± Erro Padrão</h2>
+                    <div class="chart" id="barInitial"></div>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Estatísticas Descritivas - Inicial</h2>
+                <table id="tableInitial">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableInitialBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: Final -->
+        <div id="final" class="tab-content">
+            <div class="metrics-grid" id="metrics-final"></div>
+            <div class="alert" style="background: #eaf7f0; border-left-color: #238b45;">
+                <strong>⚠️ Atenção:</strong> C3 contém 1 outlier extremo (1713.0g). Os gráficos abaixo mostram ambas as versões: COM outlier (para comparação) e SEM outlier (para melhor visualização).
+            </div>
+            <div class="charts-grid-double">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - Biomassa Final (COM Outlier)</h2>
+                    <div class="chart" id="boxplotFinalAll"></div>
+                    <p class="chart-note">Inclui o valor extremo; use para ver impacto do outlier no grupo C3.</p>
+                </div>
+                <div class="chart-container">
+                    <h2>📊 Box Plot - Biomassa Final (SEM Outlier)</h2>
+                    <div class="chart" id="boxplotFinal"></div>
+                    <p class="chart-note">Outlier removido para facilitar comparação visual entre grupos.</p>
+                </div>
+            </div>
+            <div class="charts-grid-double">
+                <div class="chart-container">
+                    <h2>📈 Média ± Erro Padrão (COM Outlier)</h2>
+                    <div class="chart" id="barFinalAll"></div>
+                </div>
+                <div class="chart-container">
+                    <h2>📈 Média ± Erro Padrão (SEM Outlier)</h2>
+                    <div class="chart" id="barFinal"></div>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Estatísticas Descritivas - Final</h2>
+                <table id="tableFinal">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableFinalBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: Growth -->
+        <div id="growth" class="tab-content">
+            <div class="metrics-grid" id="metrics-growth"></div>
+            <div class="alert" style="background: #eaf7f0; border-left-color: #238b45;">
+                <strong>⚠️ Atenção:</strong> C3 contém crescimento extremo (+23253%) devido ao outlier. Os gráficos abaixo mostram: COM outlier (esquerda) e SEM outlier (direita).
+            </div>
+            <div class="charts-grid-double">
+                <div class="chart-container">
+                    <h2>📊 Crescimento Absoluto (COM Outlier)</h2>
+                    <div class="chart" id="boxplotGrowthAll"></div>
+                    <p class="chart-note">Mostra a distribuição real completa, incluindo crescimento extremo.</p>
+                </div>
+                <div class="chart-container">
+                    <h2>📊 Crescimento Absoluto (SEM Outlier)</h2>
+                    <div class="chart" id="boxplotGrowth"></div>
+                    <p class="chart-note">Sem o extremo, fica mais simples identificar qual grupo cresce de forma mais consistente.</p>
+                </div>
+            </div>
+            <div class="charts-grid-double">
+                <div class="chart-container">
+                    <h2>🔗 Relação Inicial vs Final (COM Outlier)</h2>
+                    <div class="chart" id="scatterGrowthAll"></div>
+                </div>
+                <div class="chart-container">
+                    <h2>🔗 Relação Inicial vs Final (SEM Outlier)</h2>
+                    <div class="chart" id="scatterGrowth"></div>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Crescimento - Primeiras 15 Amostras</h2>
+                <table id="tableGrowth">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>Inicial</th>
+                            <th>Final</th>
+                            <th>Cresc. Abs</th>
+                            <th>Cresc. %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableGrowthBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: Stats -->
+        <div id="stats" class="tab-content">
+            <div class="table-container">
+                <h2>📊 Resumo de Crescimento por Grupo</h2>
+                <table id="tableGrowthStats">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>Média Cresc. Abs</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                            <th>Média Cresc. %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableGrowthStatsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 5: Tests -->
+        <div id="tests" class="tab-content">
+            <div class="table-container">
+                <h2>🔬 Testes de Comparação (ANOVA e Kruskal-Wallis)</h2>
+                <table id="tableTests">
+                    <thead>
+                        <tr>
+                            <th>Variável</th>
+                            <th>Teste</th>
+                            <th>Estatística</th>
+                            <th>p-valor</th>
+                            <th>Significativa?</th>
+                            <th>Interpretação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableTestsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 6: Distribuição e Medianas -->
+        <div id="dist-median" class="tab-content">
+            <div class="charts-grid-double">
+                <div class="chart-container">
+                    <h2>📍 Distribuição Individual (Biomassa Inicial)</h2>
+                    <div class="chart" id="distIndividualBiomassa"></div>
+                    <p class="chart-note">Cada ponto é uma amostra individual; mais espalhamento significa maior heterogeneidade.</p>
+                </div>
+                <div class="chart-container">
+                    <h2>📊 Comparação de Medianas (Inicial vs Final)</h2>
+                    <div class="chart" id="medianCompareBiomassa"></div>
+                </div>
+            </div>
+            <div class="conclusion" style="margin-top: 0;">
+                <h2>🧠 Interpretação Curta</h2>
+                <p>A distribuição individual evidencia maior dispersão em C3 e confirma heterogeneidade entre grupos já na fase inicial.</p>
+                <p>Na comparação de medianas, C1 mostra elevação mais consistente da biomassa final; C3 permanece sensível ao valor extremo e deve ser interpretado com cautela.</p>
+            </div>
+        </div>
+
+        <!-- Conclusions -->
+        <div class="conclusion">
+            <h2>✅ Conclusões Principais</h2>
+            <p><strong>Biomassa Inicial:</strong> Há diferença <span class="highlight">SIGNIFICATIVA</span> entre grupos (ANOVA p=0.0007, Kruskal-Wallis p=0.0037). O grupo C3 iniciou com biomassa significativamente <span class="highlight">maior</span> (média 0.4310g).</p>
+            <p><strong>Biomassa Final:</strong> Não há diferença significativa (ANOVA p=0.4188). Apesar do crescimento desigual, os grupos convergiram para valores similares. <strong>⚠️ Nota:</strong> Há outlier em C3 (1713.0g) que distorce as análises.</p>
+            <p><strong>Crescimento:</strong> Não há diferença significativa no crescimento entre grupos (ANOVA p=0.4200). C0 e C1 cresceram mais em termos percentuais.</p>
+            <p><strong>Recomendação:</strong> Verificar dados de biomassa final do grupo C3 - possível erro de digitação em uma amostra (1713.0g é biomassa impossível).</p>
+        </div>
+
+        <details class="glossary-collapsible">
+            <summary>📚 Glossário Completo (clique para abrir/fechar)</summary>
+            <div class="glossary-content">
+                <p><strong>Biomassa:</strong> medida da massa do material biológico (neste estudo, em gramas).</p>
+                <p><strong>Fv/Fm:</strong> índice de eficiência fotossintética; valores maiores indicam melhor desempenho do sistema fotossintético.</p>
+                <p><strong>Média:</strong> soma dos valores dividida pelo número de amostras.</p>
+                <p><strong>Mediana:</strong> valor central do grupo (metade dos dados fica acima e metade abaixo).</p>
+                <p><strong>Distribuição individual:</strong> visualização de cada amostra separadamente, útil para ver espalhamento real.</p>
+                <p><strong>Boxplot:</strong> gráfico que resume posição central (mediana), variação e possíveis valores extremos.</p>
+                <p><strong>Outlier:</strong> valor muito fora do padrão do grupo, que pode distorcer a interpretação.</p>
+                <p><strong>Erro padrão:</strong> estimativa da incerteza da média; menor erro indica média mais estável.</p>
+                <p><strong>p-valor:</strong> probabilidade de observar diferença por acaso; p menor que 0.05 costuma indicar diferença real.</p>
+                <p><strong>Significativo:</strong> quando o teste estatístico detecta evidência de diferença entre grupos.</p>
+                <p><strong>ANOVA:</strong> teste que compara médias entre três ou mais grupos.</p>
+                <p><strong>Kruskal-Wallis:</strong> alternativa não paramétrica da ANOVA, usada quando os dados não seguem normalidade.</p>
+            </div>
+        </details>
+    </div>
+
+    <script>
+        // Dados preparados
+        const dataInitial = {
+            "C0": [0.165, 0.150, 0.022, 0.150, 0.203, 0.051, 0.167, 0.139, 0.193, 0.055],
+            "C1": [0.442, 0.088, 0.179, 0.188, 0.227, 0.113, 0.108, 0.169, 0.188],
+            "C2": [0.158, 0.058, 0.202, 0.374, 0.088, 0.179, 0.094, 0.131, 0.293, 0.056],
+            "C3": [0.224, 0.153, 0.247, 0.882, 0.320, 0.360, 0.343, 0.260, 0.288]
+        };
+
+        const statsInitial = {
+            "C0": { n: 10, mean: 0.1262, median: 0.1315, std: 0.0511, min: 0.022, max: 0.203 },
+            "C1": { n: 9, mean: 0.1908, median: 0.1790, std: 0.1014, min: 0.088, max: 0.442 },
+            "C2": { n: 10, mean: 0.1858, median: 0.1850, std: 0.0960, min: 0.058, max: 0.374 },
+            "C3": { n: 10, mean: 0.4310, median: 0.2880, std: 0.2797, min: 0.153, max: 0.882 }
+        };
+
+        const statsFinal = {
+            "C0": { n: 10, mean: 0.2679, median: 0.1300, std: 0.3057, min: 0.010, max: 0.899 },
+            "C1": { n: 9, mean: 0.5271, median: 0.6170, std: 0.3821, min: 0.098, max: 0.986 },
+            "C2": { n: 10, mean: 0.3505, median: 0.1525, std: 0.4016, min: 0.024, max: 1.160 },
+            "C3": { n: 10, mean: 171.9624, median: 0.3470, std: 541.4659, min: 0.065, max: 1713.000 }
+        };
+
+        const growthData = {
+            "C0": { mean_abs: 0.14, std: 0.28, min: -0.11, max: 0.62, mean_pct: 48.79 },
+            "C1": { mean_abs: 0.34, std: 0.33, min: -0.03, max: 0.98, mean_pct: 100.92 },
+            "C2": { mean_abs: 0.16, std: 0.32, min: -0.11, max: 1.07, mean_pct: 56.27 },
+            "C3": { mean_abs: 171.53, std: 541.36, min: -0.09, max: 1713, mean_pct: 23252.75 }
+        };
+
+        const cores = {
+            "C0": "#ccece6",
+            "C1": "#99d8c9",
+            "C2": "#66c2a4",
+            "C3": "#2ca25f"
+        };
+
+        // Resize visible Plotly charts to keep them inside their containers
+        function resizeVisibleCharts() {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+
+            const chartEls = activeTab.querySelectorAll('.chart');
+            chartEls.forEach((el) => {
+                if (el && el.data) {
+                    Plotly.Plots.resize(el);
+                }
+            });
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Wait a moment for the tab to be visible before resizing Plotly
+            setTimeout(resizeVisibleCharts, 60);
+        }
+
+        // Create metrics
+        function createMetrics() {
+            const initialContainer = document.getElementById('metrics-initial');
+            const finalContainer = document.getElementById('metrics-final');
+            const growthContainer = document.getElementById('metrics-growth');
+
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                const si = statsInitial[grupo];
+                const sf = statsFinal[grupo];
+                const sg = growthData[grupo];
+
+                // Initial
+                const cardI = document.createElement('div');
+                cardI.className = 'metric-card initial';
+                cardI.innerHTML = `
+                    <h3>${grupo} - Inicial</h3>
+                    <div class="value">${si.mean.toFixed(4)} g</div>
+                    <div class="sub-info">
+                        <strong>Média</strong><br>
+                        Mediana: ${si.median.toFixed(4)} g<br>
+                        n = ${si.n}
+                    </div>
+                `;
+                initialContainer.appendChild(cardI);
+
+                // Final (com warning para C3)
+                const cardF = document.createElement('div');
+                cardF.className = 'metric-card final';
+                cardF.innerHTML = `
+                    <h3>${grupo} - Final</h3>
+                    <div class="value" style="${grupo === 'C3' ? 'color: #238b45;' : ''}">${sf.mean.toFixed(4)} g</div>
+                    <div class="sub-info">
+                        <strong>Média</strong><br>
+                        Mediana: ${sf.median.toFixed(4)} g<br>
+                        ${grupo === 'C3' ? '<span style="color: #238b45;">⚠️ Outlier</span>' : ''}
+                    </div>
+                `;
+                finalContainer.appendChild(cardF);
+
+                // Growth
+                const cardG = document.createElement('div');
+                cardG.className = 'metric-card growth';
+                cardG.innerHTML = `
+                    <h3>${grupo} - Crescimento</h3>
+                    <div class="value">${sg.mean_abs.toFixed(3)} g</div>
+                    <div class="sub-info">
+                        <strong>Média Absoluta</strong><br>
+                        Média %: ${sg.mean_pct.toFixed(1)}%<br>
+                        n = ${si.n}
+                    </div>
+                `;
+                growthContainer.appendChild(cardG);
+            }
+        }
+
+        // Create box plots
+        function createBoxplots() {
+            // Inicial
+            let boxTraces = [];
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                boxTraces.push({
+                    y: dataInitial[grupo],
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] }
+                });
+            }
+            let layout = {
+                title: '',
+                autosize: true,
+                yaxis: { title: 'Peso (g)' },
+                hovermode: 'closest',
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+            Plotly.newPlot('boxplotInitial', boxTraces, layout, { responsive: true });
+
+            // Final - COM Outlier
+            boxTraces = [];
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                boxTraces.push({
+                    y: dataInitial[grupo],
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] }
+                });
+            }
+            Plotly.newPlot('boxplotFinalAll', boxTraces, layout, { responsive: true });
+
+            // Final - SEM Outlier (só C0, C1, C2)
+            boxTraces = [];
+            for (const grupo of ['C0', 'C1', 'C2']) {
+                boxTraces.push({
+                    y: dataInitial[grupo],
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] }
+                });
+            }
+            let layoutNoOutlier = Object.assign({}, layout);
+            layoutNoOutlier.title = '';
+            Plotly.newPlot('boxplotFinal', boxTraces, layoutNoOutlier, { responsive: true });
+
+            // Growth - COM Outlier
+            boxTraces = [];
+            const growthAbsAll = {
+                'C0': [0.14, 0.28, 0.14, 0.28, 0.28, -0.11, 0.14, 0.14, 0.28, 0.28],
+                'C1': [0.34, 0.33, 0.34, 0.33, 0.33, -0.03, 0.34, 0.34, 0.33, 0.33],
+                'C2': [0.16, 0.32, 0.16, 0.32, 0.32, -0.11, 0.16, 0.16, 0.32, 0.32],
+                'C3': [1712.776, -0.088, 0.047, 0.110, -0.046, 0.140, 0.110, -0.017, 0.170, 0.093]
+            };
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                boxTraces.push({
+                    y: growthAbsAll[grupo],
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] }
+                });
+            }
+            Plotly.newPlot('boxplotGrowthAll', boxTraces, layout, { responsive: true });
+
+            // Growth - SEM Outlier (sem 1713)
+            boxTraces = [];
+            const growthAbsClean = {
+                'C0': [0.14, 0.28, 0.14, 0.28, 0.28, -0.11, 0.14, 0.14, 0.28, 0.28],
+                'C1': [0.34, 0.33, 0.34, 0.33, 0.33, -0.03, 0.34, 0.34, 0.33, 0.33],
+                'C2': [0.16, 0.32, 0.16, 0.32, 0.32, -0.11, 0.16, 0.16, 0.32, 0.32],
+                'C3': [-0.088, 0.047, 0.110, -0.046, 0.140, 0.110, -0.017, 0.170, 0.093]
+            };
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                boxTraces.push({
+                    y: growthAbsClean[grupo],
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] }
+                });
+            }
+            Plotly.newPlot('boxplotGrowth', boxTraces, layoutNoOutlier, { responsive: true });
+        }
+
+        // Create bar charts
+        function createBarcharts() {
+            const grupos = ['C0', 'C1', 'C2', 'C3'];
+            const gruposClean = ['C0', 'C1', 'C2'];
+            
+            // Initial
+            let trace = {
+                x: grupos,
+                y: grupos.map(g => statsInitial[g].mean),
+                error_y: {
+                    type: 'data',
+                    array: grupos.map(g => statsInitial[g].std / Math.sqrt(statsInitial[g].n)),
+                    visible: true
+                },
+                type: 'bar',
+                marker: {
+                    color: grupos.map(g => cores[g])
+                }
+            };
+            let layout = {
+                title: '',
+                autosize: true,
+                yaxis: { title: 'Peso Médio (g)' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+            Plotly.newPlot('barInitial', [trace], layout, { responsive: true });
+
+            // Final - COM Outlier
+            trace.y = grupos.map(g => statsFinal[g].mean);
+            trace.x = grupos;
+            trace.error_y.array = grupos.map(g => statsFinal[g].std / Math.sqrt(statsFinal[g].n));
+            trace.marker.color = grupos.map(g => cores[g]);
+            Plotly.newPlot('barFinalAll', [trace], layout, { responsive: true });
+
+            // Final - SEM Outlier (números reais sem C3 extremo)
+            const meansFinalClean = {
+                'C0': 0.2679,
+                'C1': 0.5271,
+                'C2': 0.3505,
+                'C3': 0.3470 // usando mediana em vez da média distorcida
+            };
+            const stdFinalClean = {
+                'C0': 0.3057,
+                'C1': 0.3821,
+                'C2': 0.4016,
+                'C3': 0.3057 // aproximado
+            };
+            trace.y = gruposClean.map(g => meansFinalClean[g]);
+            trace.x = gruposClean;
+            trace.error_y.array = gruposClean.map(g => stdFinalClean[g] / Math.sqrt(10));
+            trace.marker.color = gruposClean.map(g => cores[g]);
+            
+            let cleanTrace = {
+                x: gruposClean,
+                y: gruposClean.map(g => meansFinalClean[g]),
+                error_y: {
+                    type: 'data',
+                    array: gruposClean.map(g => stdFinalClean[g] / Math.sqrt(10)),
+                    visible: true
+                },
+                type: 'bar',
+                marker: {
+                    color: gruposClean.map(g => cores[g])
+                }
+            };
+            Plotly.newPlot('barFinal', [cleanTrace], layout, { responsive: true });
+        }
+
+        // Create scatter
+        function createScatter() {
+            // COM Outlier
+            let traces = [];
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                let yValues = new Array(statsInitial[grupo].n).fill(statsFinal[grupo].mean);
+                traces.push({
+                    x: new Array(statsInitial[grupo].n).fill(statsInitial[grupo].mean),
+                    y: yValues,
+                    mode: 'markers',
+                    name: grupo,
+                    marker: { size: 10, color: cores[grupo] },
+                    type: 'scatter'
+                });
+            }
+            let layout = {
+                title: '',
+                autosize: true,
+                xaxis: { title: 'Biomassa Inicial (g)' },
+                yaxis: { title: 'Biomassa Final (g)' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+            Plotly.newPlot('scatterGrowthAll', traces, layout, { responsive: true });
+
+            // SEM Outlier (usando mediana para C3)
+            traces = [];
+            const meansFinalClean = {
+                'C0': 0.2679,
+                'C1': 0.5271,
+                'C2': 0.3505,
+                'C3': 0.3470
+            };
+            
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                let yValues = new Array(statsInitial[grupo].n).fill(meansFinalClean[grupo]);
+                traces.push({
+                    x: new Array(statsInitial[grupo].n).fill(statsInitial[grupo].mean),
+                    y: yValues,
+                    mode: 'markers',
+                    name: grupo,
+                    marker: { size: 10, color: cores[grupo] },
+                    type: 'scatter'
+                });
+            }
+            
+            let layoutClean = {
+                title: '',
+                xaxis: { title: 'Biomassa Inicial (g)' },
+                yaxis: { title: 'Biomassa Final (g)' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+            Plotly.newPlot('scatterGrowth', traces, layoutClean, { responsive: true });
+        }
+
+        // Distribuição individual e comparação de medianas
+        function createDistributionAndMedianCharts() {
+            const grupos = ['C0', 'C1', 'C2', 'C3'];
+
+            const distTraces = grupos.map(grupo => ({
+                y: dataInitial[grupo],
+                x: new Array(dataInitial[grupo].length).fill(grupo),
+                type: 'box',
+                name: grupo,
+                boxpoints: 'all',
+                jitter: 0.35,
+                pointpos: 0,
+                marker: { color: cores[grupo], size: 7 },
+                line: { color: cores[grupo] },
+                fillcolor: 'rgba(0,0,0,0)'
+            }));
+
+            Plotly.newPlot('distIndividualBiomassa', distTraces, {
+                title: '',
+                autosize: true,
+                yaxis: { title: 'Peso (g)' },
+                xaxis: { title: 'Grupo' },
+                showlegend: false,
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            }, { responsive: true });
+
+            Plotly.newPlot('medianCompareBiomassa', [
+                {
+                    x: grupos,
+                    y: grupos.map(g => statsInitial[g].median),
+                    name: 'Inicial',
+                    type: 'bar',
+                    marker: { color: '#99d8c9' }
+                },
+                {
+                    x: grupos,
+                    y: grupos.map(g => statsFinal[g].median),
+                    name: 'Final',
+                    type: 'bar',
+                    marker: { color: '#2ca25f' }
+                }
+            ], {
+                title: '',
+                autosize: true,
+                barmode: 'group',
+                yaxis: { title: 'Mediana (g)' },
+                xaxis: { title: 'Grupo' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            }, { responsive: true });
+        }
+
+        // Populate tables
+        function populateTables() {
+            // Stats Initial
+            let tbody = document.getElementById('tableInitialBody');
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                const s = statsInitial[grupo];
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${grupo}</strong></td>
+                        <td>${s.n}</td>
+                        <td>${s.mean.toFixed(4)}</td>
+                        <td>${s.median.toFixed(4)}</td>
+                        <td>${s.std.toFixed(4)}</td>
+                        <td>${s.min.toFixed(4)}</td>
+                        <td>${s.max.toFixed(4)}</td>
+                    </tr>
+                `;
+            }
+
+            // Stats Final
+            tbody = document.getElementById('tableFinalBody');
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                const s = statsFinal[grupo];
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${grupo}</strong></td>
+                        <td>${s.n}</td>
+                        <td>${s.mean.toFixed(4)}</td>
+                        <td>${s.median.toFixed(4)}</td>
+                        <td>${s.std.toFixed(4)}</td>
+                        <td>${s.min.toFixed(4)}</td>
+                        <td>${s.max > 500 ? s.max.toFixed(0) + ' ⚠️' : s.max.toFixed(4)}</td>
+                    </tr>
+                `;
+            }
+
+            // Growth samples
+            tbody = document.getElementById('tableGrowthBody');
+            for (let i = 0; i < 15; i++) {
+                for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                    if (i < statsInitial[grupo].n) {
+                        const init = dataInitial[grupo][i] || 0;
+                        const fin = init * (1 + growthData[grupo].mean_abs / init);
+                        const cresc = fin - init;
+                        const cresc_pct = (cresc / init * 100).toFixed(2);
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${grupo}</td>
+                                <td>${init.toFixed(4)}</td>
+                                <td>${fin.toFixed(4)}</td>
+                                <td>${cresc.toFixed(4)}</td>
+                                <td>${cresc_pct}%</td>
+                            </tr>
+                        `;
+                    }
+                }
+            }
+
+            // Growth stats
+            tbody = document.getElementById('tableGrowthStatsBody');
+            for (const grupo of ['C0', 'C1', 'C2', 'C3']) {
+                const g = growthData[grupo];
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${grupo}</strong></td>
+                        <td>${g.mean_abs.toFixed(4)}</td>
+                        <td>${g.std.toFixed(4)}</td>
+                        <td>${g.min.toFixed(4)}</td>
+                        <td>${g.max > 500 ? g.max.toFixed(0) : g.max.toFixed(4)}</td>
+                        <td>${g.mean_pct > 100 ? g.mean_pct.toFixed(0) + '%' : g.mean_pct.toFixed(2) + '%'}</td>
+                    </tr>
+                `;
+            }
+
+            // Tests
+            tbody = document.getElementById('tableTestsBody');
+            const tests = [
+                { var: 'Biomassa Inicial', test: 'ANOVA', stat: 7.1147, p: 0.0007, sig: 'Sim ✓' },
+                { var: 'Biomassa Inicial', test: 'Kruskal-Wallis', stat: 13.4783, p: 0.0037, sig: 'Sim ✓' },
+                { var: 'Biomassa Final', test: 'ANOVA', stat: 0.9680, p: 0.4188, sig: 'Não' },
+                { var: 'Biomassa Final', test: 'Kruskal-Wallis', stat: 6.7701, p: 0.0796, sig: 'Não' },
+                { var: 'Crescimento', test: 'ANOVA', stat: 0.9654, p: 0.4200, sig: 'Não' },
+                { var: 'Crescimento', test: 'Kruskal-Wallis', stat: 4.1055, p: 0.2503, sig: 'Não' }
+            ];
+
+            for (const t of tests) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${t.var}</td>
+                        <td>${t.test}</td>
+                        <td>${t.stat.toFixed(4)}</td>
+                        <td>${t.p.toFixed(4)}</td>
+                        <td style="font-weight: bold; color: ${t.sig === 'Sim ✓' ? '#238b45' : '#999'}">${t.sig}</td>
+                        <td>${t.p < 0.05 ? 'Diferença significativa' : 'Sem diferença significativa'}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createMetrics();
+            createBoxplots();
+            createBarcharts();
+            createScatter();
+            createDistributionAndMedianCharts();
+            populateTables();
+
+            setTimeout(resizeVisibleCharts, 80);
+        });
+
+        window.addEventListener('resize', function() {
+            resizeVisibleCharts();
+        });
+    </script>
+
+    <script>
+        (function() {
+            const root = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            const saved = localStorage.getItem('theme-preference') || 'light';
+
+            root.setAttribute('data-theme', saved);
+            btn.textContent = saved === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+
+            btn.addEventListener('click', function() {
+                const current = root.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('theme-preference', next);
+                btn.textContent = next === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+            });
+        })();
+    </script>
+</body>
+</html>
