@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PAM (Fluorescência)</title>
+    <script src="libs/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #e5f5f9 0%, #99d8c9 100%);
+            --surface: #ffffff;
+            --text: #16352d;
+            --muted: #3f5d55;
+            --line: #bcded4;
+            --primary: #2ca25f;
+            --primary-strong: #238b45;
+            --focus: #66c2a4;
+            --shadow: 0 10px 24px rgba(23, 74, 57, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--surface);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+        }
+
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--muted);
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #f2fbf8;
+            border: 2px solid #bcded4;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-strong);
+            box-shadow: inset 0 -3px 0 #99d8c9;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .tab-btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid #66c2a4;
+            border: 1px solid var(--line);
+        }
+
+        .metric-card h3 {
+            color: #333;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .charts-grid-double {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid-double {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        .chart-container h2 {
+            color: var(--primary);
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d9efe8;
+        }
+
+        .chart-note {
+            margin-top: 10px;
+            font-size: 0.88em;
+            color: #6a7280;
+            line-height: 1.5;
+        }
+
+        .chart {
+            width: 100%;
+            height: 400px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .chart .js-plotly-plot,
+        .chart .plot-container,
+        .chart .svg-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .table-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            margin-bottom: 30px;
+            border: 1px solid var(--line);
+        }
+
+        .table-container h2 {
+            color: var(--primary);
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d9efe8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #e5f5f9;
+            color: #1e5f47;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #99d8c9;
+            font-size: 0.9em;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f3fbf8;
+        }
+
+        tr:nth-child(even) {
+            background: #fbfefc;
+        }
+
+        .alert {
+            background: #eefaf4;
+            border-left: 5px solid #2ca25f;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert strong {
+            color: #1f6a4d;
+        }
+
+        .didactic-panel {
+            background: #eefaf6;
+            border-left: 5px solid #66c2a4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #2a554a;
+            line-height: 1.6;
+        }
+
+        .corr-panel {
+            background: #f2fbf8;
+            border-left: 5px solid #2ca25f;
+            border: 1px solid #d9efe8;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #2a554a;
+            line-height: 1.65;
+        }
+
+        .corr-panel h3 {
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 1.05em;
+        }
+
+        .corr-panel ul {
+            margin: 6px 0 0 18px;
+        }
+
+        .glossary-collapsible {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #66c2a4;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .glossary-collapsible summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 16px 20px;
+            font-weight: 700;
+            color: var(--primary);
+            background: #f2fbf8;
+            border-bottom: 1px solid #d9efe8;
+        }
+
+        .glossary-collapsible summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .glossary-content {
+            padding: 14px 20px 18px;
+        }
+
+        .glossary-content p {
+            margin-bottom: 8px;
+            color: #4f5d75;
+            line-height: 1.6;
+        }
+
+        .conclusion {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #2ca25f;
+            margin-top: 30px;
+        }
+
+        .conclusion h2 {
+            color: #2ca25f;
+            margin-bottom: 15px;
+        }
+
+        .conclusion p {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 9999;
+            background: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        html[data-theme='dark'] {
+            --bg: linear-gradient(135deg, #0f1f1a 0%, #173229 100%);
+            --surface: #132923;
+            --text: #e8f5ef;
+            --muted: #b4d1c4;
+            --line: #2b5143;
+            --primary: #66c2a4;
+            --primary-strong: #99d8c9;
+            --focus: #ccece6;
+            --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        html[data-theme='dark'] .metric-card h3,
+        html[data-theme='dark'] .chart-note,
+        html[data-theme='dark'] .glossary-content p,
+        html[data-theme='dark'] .conclusion p {
+            color: #d6ebe2;
+        }
+
+        html[data-theme='dark'] td {
+            border-bottom: 1px solid var(--line);
+            color: #e8f5ef;
+        }
+
+        html[data-theme='dark'] th {
+            background: #1a3a30;
+            color: #d8efe6;
+            border-bottom-color: #2e6955;
+        }
+
+        html[data-theme='dark'] tr:nth-child(even) {
+            background: #173228;
+        }
+
+        html[data-theme='dark'] tr:hover {
+            background: #1d3d32;
+        }
+
+        html[data-theme='dark'] .didactic-panel,
+        html[data-theme='dark'] .alert {
+            color: #dff2e9;
+        }
+
+        html[data-theme='dark'] .didactic-panel {
+            background: #173228;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .corr-panel {
+            background: #173228;
+            border-color: #2b5143;
+            border-left-color: #66c2a4;
+            color: #dff2e9;
+        }
+
+        html[data-theme='dark'] .corr-panel h3 {
+            color: #ccece6;
+        }
+
+        html[data-theme='dark'] .alert {
+            background: #173228;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .alert strong {
+            color: #ccece6;
+        }
+
+        html[data-theme='dark'] .glossary-collapsible {
+            background: #132923;
+            border-color: #2b5143;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .glossary-collapsible summary {
+            background: #173228;
+            color: #d8efe6;
+            border-bottom-color: #2b5143;
+        }
+
+        html[data-theme='dark'] .conclusion {
+            background: #173228;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .conclusion h2 {
+            color: #ccece6;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 1.8em;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" type="button">🌙 Escuro</button>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard - PAM (Fluorescência)</h1>
+            <p>Análise de Eficiência Fotossintética Quântica (Fv/Fm) - C0, C1, C2, C3</p>
+        </header>
+
+        <div class="alert">
+            <strong>ℹ️ Informação:</strong> Fv/Fm é a eficiência fotossintética quântica máxima do PSII. Valores entre 0.75-0.85 indicam plantas saudáveis.
+        </div>
+
+        <div class="didactic-panel">
+            <strong>📘 Modo Apresentação Simples:</strong>
+            Em cada gráfico, observe primeiro a mediana (linha central), depois o espalhamento dos pontos e por último a diferença entre SEM e COM NaNO3.
+            Quanto mais acima de zero na mudança, maior o ganho de desempenho fotossintético.
+        </div>
+
+        <div class="corr-panel">
+            <h3>🔗 Interpretação de Correlações (Guia Rápido)</h3>
+            <ul>
+                <li>Correlação descreve relação entre variáveis (direção e intensidade).</li>
+                <li>Coeficiente: perto de +1 (positiva forte), perto de -1 (negativa forte), perto de 0 (fraca).</li>
+                <li>Correlação não indica causalidade por si só.</li>
+                <li>Interprete junto com p-valor e tamanho amostral (n).</li>
+                <li>No contexto fisiológico, verifique se aumento de biomassa acompanha melhora de PAM em grupos específicos.</li>
+            </ul>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('initial-sem')">PAM Inicial (SEM NaNO3)</button>
+            <button class="tab-btn" onclick="showTab('final-sem')">PAM Final (SEM NaNO3)</button>
+            <button class="tab-btn" onclick="showTab('mudanca-sem')">Mudança (SEM NaNO3)</button>
+            <button class="tab-btn" onclick="showTab('initial-com')">PAM Inicial (COM NaNO3)</button>
+            <button class="tab-btn" onclick="showTab('final-com')">PAM Final (COM NaNO3)</button>
+            <button class="tab-btn" onclick="showTab('mudanca-com')">Mudança (COM NaNO3)</button>
+            <button class="tab-btn" onclick="showTab('testes')">Testes Estatísticos</button>
+            <button class="tab-btn" onclick="showTab('dist-median')">Distribuição e Medianas</button>
+        </div>
+
+        <!-- TAB 1: PAM Inicial SEM NaNO3 -->
+        <div id="initial-sem" class="tab-content active">
+            <div class="metrics-grid" id="metrics-initial-sem"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - PAM Inicial (SEM NaNO3)</h2>
+                    <div class="chart" id="boxplotInitialSem"></div>
+                    <p class="chart-note">A linha central é a mediana; caixas menores indicam respostas mais consistentes.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Estatísticas Descritivas - Inicial (SEM)</h2>
+                <table id="tableInitialSem">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableInitialSemBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: PAM Final SEM NaNO3 -->
+        <div id="final-sem" class="tab-content">
+            <div class="metrics-grid" id="metrics-final-sem"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - PAM Final (SEM NaNO3)</h2>
+                    <div class="chart" id="boxplotFinalSem"></div>
+                    <p class="chart-note">Permite ver se os valores finais de Fv/Fm se concentram ou se dispersam por grupo.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Estatísticas Descritivas - Final (SEM)</h2>
+                <table id="tableFinalSem">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableFinalSemBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: Mudança SEM NaNO3 -->
+        <div id="mudanca-sem" class="tab-content">
+            <div class="metrics-grid" id="metrics-mudanca-sem"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - Mudança PAM (SEM NaNO3)</h2>
+                    <div class="chart" id="boxplotMudancaSem"></div>
+                    <p class="chart-note">Valores acima de zero indicam ganho; abaixo de zero indicam perda de desempenho.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Mudança - Estatísticas (SEM)</h2>
+                <table id="tableMudancaSem">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableMudancaSemBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: PAM Inicial COM NaNO3 -->
+        <div id="initial-com" class="tab-content">
+            <div class="metrics-grid" id="metrics-initial-com"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - PAM Inicial (COM NaNO3)</h2>
+                    <div class="chart" id="boxplotInitialCom"></div>
+                    <p class="chart-note">Mostra o ponto de partida com tratamento para comparação direta com SEM NaNO3.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Estatísticas Descritivas - Inicial (COM)</h2>
+                <table id="tableInitialCom">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableInitialComBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 5: PAM Final COM NaNO3 -->
+        <div id="final-com" class="tab-content">
+            <div class="metrics-grid" id="metrics-final-com"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - PAM Final (COM NaNO3)</h2>
+                    <div class="chart" id="boxplotFinalCom"></div>
+                    <p class="chart-note">Ajuda a identificar quais grupos respondem melhor ao tratamento no final.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Estatísticas Descritivas - Final (COM)</h2>
+                <table id="tableFinalCom">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableFinalComBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 6: Mudança COM NaNO3 -->
+        <div id="mudanca-com" class="tab-content">
+            <div class="metrics-grid" id="metrics-mudanca-com"></div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h2>📊 Box Plot - Mudança PAM (COM NaNO3)</h2>
+                    <div class="chart" id="boxplotMudancaCom"></div>
+                    <p class="chart-note">Quanto mais acima de zero, maior o ganho de eficiência fotossintética.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <h2>📋 Mudança - Estatísticas (COM)</h2>
+                <table id="tableMudancaCom">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>n</th>
+                            <th>Média</th>
+                            <th>Mediana</th>
+                            <th>Des. Padrão</th>
+                            <th>Mín</th>
+                            <th>Máx</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableMudancaComBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 7: Testes Estatísticos -->
+        <div id="testes" class="tab-content">
+            <div class="table-container">
+                <h2>🔬 Testes de Comparação (ANOVA e Kruskal-Wallis)</h2>
+                <table id="tableTests">
+                    <thead>
+                        <tr>
+                            <th>Condição</th>
+                            <th>Variável</th>
+                            <th>ANOVA F</th>
+                            <th>ANOVA p-valor</th>
+                            <th>KW H</th>
+                            <th>KW p-valor</th>
+                            <th>Significativo?</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableTestsBody"></tbody>
+                </table>
+            </div>
+            <div class="conclusion">
+                <h2>📌 Conclusões</h2>
+                <p><strong>PAM SEM NaNO3:</strong></p>
+                <p>• PAM Inicial: Sem diferença significativa entre grupos (p > 0.05)</p>
+                <p>• PAM Final: DIFERENÇA SIGNIFICATIVA entre grupos (p < 0.05) - C3 apresenta valores mais altos</p>
+                <p>• Mudança: DIFERENÇA SIGNIFICATIVA entre grupos (p < 0.05)</p>
+                <p><strong>PAM COM NaNO3:</strong></p>
+                <p>• PAM Inicial: DIFERENÇA SIGNIFICATIVA entre grupos (p < 0.05) - C3 com valores mais altos inicialmente</p>
+                <p>• PAM Final: Sem diferença significativa entre grupos (p > 0.05) - uniformização após tratamento</p>
+                <p>• Mudança: DIFERENÇA SIGNIFICATIVA entre grupos (p < 0.05)</p>
+            </div>
+        </div>
+
+        <!-- TAB 8: Distribuição e Medianas -->
+        <div id="dist-median" class="tab-content">
+            <div class="charts-grid-double">
+                <div class="chart-container">
+                    <h2>📍 Distribuição Individual (PAM Final)</h2>
+                    <div class="chart" id="distIndividualPam"></div>
+                    <p class="chart-note">Cada ponto representa uma amostra; facilita ver sobreposição entre SEM e COM NaNO3.</p>
+                </div>
+                <div class="chart-container">
+                    <h2>📊 Comparação de Medianas (SEM vs COM)</h2>
+                    <div class="chart" id="medianComparePam"></div>
+                </div>
+            </div>
+            <div class="conclusion" style="margin-top: 0;">
+                <h2>🧠 Interpretação Curta</h2>
+                <p>A distribuição individual mostra que C0, C1 e C2 deslocam o PAM final para valores mais altos com NaNO3, enquanto C3 permanece estável.</p>
+                <p>Na comparação de medianas, o tratamento COM NaNO3 eleva a mediana do PAM final principalmente em C1 e C2, sugerindo ganho de eficiência fotossintética nesses grupos.</p>
+            </div>
+        </div>
+
+        <details class="glossary-collapsible">
+            <summary>📚 Glossário Completo (clique para abrir/fechar)</summary>
+            <div class="glossary-content">
+                <p><strong>Biomassa:</strong> medida da massa do material biológico (neste estudo, em gramas).</p>
+                <p><strong>Fv/Fm:</strong> índice de eficiência fotossintética; valores maiores indicam melhor desempenho do sistema fotossintético.</p>
+                <p><strong>Média:</strong> soma dos valores dividida pelo número de amostras.</p>
+                <p><strong>Mediana:</strong> valor central do grupo (metade dos dados fica acima e metade abaixo).</p>
+                <p><strong>Distribuição individual:</strong> visualização de cada amostra separadamente, útil para ver espalhamento real.</p>
+                <p><strong>Boxplot:</strong> gráfico que resume posição central (mediana), variação e possíveis valores extremos.</p>
+                <p><strong>Outlier:</strong> valor muito fora do padrão do grupo, que pode distorcer a interpretação.</p>
+                <p><strong>Erro padrão:</strong> estimativa da incerteza da média; menor erro indica média mais estável.</p>
+                <p><strong>p-valor:</strong> probabilidade de observar diferença por acaso; p menor que 0.05 costuma indicar diferença real.</p>
+                <p><strong>Significativo:</strong> quando o teste estatístico detecta evidência de diferença entre grupos.</p>
+                <p><strong>ANOVA:</strong> teste que compara médias entre três ou mais grupos.</p>
+                <p><strong>Kruskal-Wallis:</strong> alternativa não paramétrica da ANOVA, usada quando os dados não seguem normalidade.</p>
+            </div>
+        </details>
+    </div>
+
+    <script>
+        // Dados para tabelas
+        const pam_inicial_sem_stats = [{"Grupo": "C0", "n": 10, "M\u00e9dia": 0.4328, "Mediana": 0.4228, "Des. Padr\u00e3o": 0.0536, "M\u00edn": 0.3643, "M\u00e1x": 0.5503}, {"Grupo": "C1", "n": 10, "M\u00e9dia": 0.4236, "Mediana": 0.411, "Des. Padr\u00e3o": 0.0376, "M\u00edn": 0.3817, "M\u00e1x": 0.5063}, {"Grupo": "C2", "n": 10, "M\u00e9dia": 0.4057, "Mediana": 0.4087, "Des. Padr\u00e3o": 0.067, "M\u00edn": 0.257, "M\u00e1x": 0.4757}, {"Grupo": "C3", "n": 10, "M\u00e9dia": 0.3812, "Mediana": 0.3628, "Des. Padr\u00e3o": 0.0651, "M\u00edn": 0.2997, "M\u00e1x": 0.4883}];
+        const pam_final_sem_stats = [{"Grupo": "C0", "n": 10, "M\u00e9dia": 0.2472, "Mediana": 0.2465, "Des. Padr\u00e3o": 0.0447, "M\u00edn": 0.1907, "M\u00e1x": 0.301}, {"Grupo": "C1", "n": 10, "M\u00e9dia": 0.2221, "Mediana": 0.193, "Des. Padr\u00e3o": 0.0782, "M\u00edn": 0.1563, "M\u00e1x": 0.4267}, {"Grupo": "C2", "n": 10, "M\u00e9dia": 0.2525, "Mediana": 0.2557, "Des. Padr\u00e3o": 0.0875, "M\u00edn": 0.112, "M\u00e1x": 0.4097}, {"Grupo": "C3", "n": 10, "M\u00e9dia": 0.434, "Mediana": 0.4268, "Des. Padr\u00e3o": 0.1262, "M\u00edn": 0.1957, "M\u00e1x": 0.6143}];
+        const pam_mudanca_sem_stats = [{"Grupo": "C0", "n": 10, "M\u00e9dia": -0.1856, "Mediana": -0.1977, "Des. Padr\u00e3o": 0.0879, "M\u00edn": -0.3597, "M\u00e1x": -0.0633}, {"Grupo": "C1", "n": 10, "M\u00e9dia": -0.2015, "Mediana": -0.2075, "Des. Padr\u00e3o": 0.0927, "M\u00edn": -0.314, "M\u00e1x": 0.015}, {"Grupo": "C2", "n": 10, "M\u00e9dia": -0.1532, "Mediana": -0.1777, "Des. Padr\u00e3o": 0.1023, "M\u00edn": -0.2817, "M\u00e1x": 0.009}, {"Grupo": "C3", "n": 10, "M\u00e9dia": 0.0527, "Mediana": 0.0353, "Des. Padr\u00e3o": 0.1085, "M\u00edn": -0.1117, "M\u00e1x": 0.2693}];
+        const pam_inicial_com_stats = [{"Grupo": "C0", "n": 10, "M\u00e9dia": 0.3244, "Mediana": 0.3155, "Des. Padr\u00e3o": 0.0577, "M\u00edn": 0.2503, "M\u00e1x": 0.4283}, {"Grupo": "C1", "n": 10, "M\u00e9dia": 0.289, "Mediana": 0.2593, "Des. Padr\u00e3o": 0.1053, "M\u00edn": 0.1913, "M\u00e1x": 0.54}, {"Grupo": "C2", "n": 10, "M\u00e9dia": 0.3311, "Mediana": 0.3313, "Des. Padr\u00e3o": 0.0989, "M\u00edn": 0.2127, "M\u00e1x": 0.5173}, {"Grupo": "C3", "n": 10, "M\u00e9dia": 0.4461, "Mediana": 0.428, "Des. Padr\u00e3o": 0.1085, "M\u00edn": 0.3143, "M\u00e1x": 0.599}];
+        const pam_final_com_stats = [{"Grupo": "C0", "n": 10, "M\u00e9dia": 0.4917, "Mediana": 0.5938, "Des. Padr\u00e3o": 0.1884, "M\u00edn": 0.1813, "M\u00e1x": 0.6497}, {"Grupo": "C1", "n": 10, "M\u00e9dia": 0.5413, "Mediana": 0.5712, "Des. Padr\u00e3o": 0.1266, "M\u00edn": 0.2217, "M\u00e1x": 0.7073}, {"Grupo": "C2", "n": 10, "M\u00e9dia": 0.4635, "Mediana": 0.5372, "Des. Padr\u00e3o": 0.1799, "M\u00edn": 0.148, "M\u00e1x": 0.6323}, {"Grupo": "C3", "n": 10, "M\u00e9dia": 0.4324, "Mediana": 0.4128, "Des. Padr\u00e3o": 0.1269, "M\u00edn": 0.295, "M\u00e1x": 0.668}];
+        const pam_mudanca_com_stats = [{"Grupo": "C0", "n": 10, "M\u00e9dia": 0.1673, "Mediana": 0.2345, "Des. Padr\u00e3o": 0.1897, "M\u00edn": -0.1733, "M\u00e1x": 0.3627}, {"Grupo": "C1", "n": 10, "M\u00e9dia": 0.2523, "Mediana": 0.2915, "Des. Padr\u00e3o": 0.1415, "M\u00edn": -0.0017, "M\u00e1x": 0.5057}, {"Grupo": "C2", "n": 10, "M\u00e9dia": 0.1324, "Mediana": 0.1717, "Des. Padr\u00e3o": 0.181, "M\u00edn": -0.1277, "M\u00e1x": 0.3623}, {"Grupo": "C3", "n": 10, "M\u00e9dia": -0.0137, "Mediana": -0.015, "Des. Padr\u00e3o": 0.0611, "M\u00edn": -0.1413, "M\u00e1x": 0.0737}];
+
+        // Dados brutos para gráficos
+        const pam_sem_data = [{"grupo":"C3","inicial":0.468,"final":0.4903333333,"mudanca":0.0223333333},{"grupo":"C0","inicial":0.4743333333,"final":0.2893333333,"mudanca":-0.185},{"grupo":"C2","inicial":0.406,"final":0.1243333333,"mudanca":-0.2816666667},{"grupo":"C0","inicial":0.454,"final":0.2046666667,"mudanca":-0.2493333333},{"grupo":"C2","inicial":0.4113333333,"final":0.2653333333,"mudanca":-0.146},{"grupo":"C0","inicial":0.5503333333,"final":0.1906666667,"mudanca":-0.3596666667},{"grupo":"C1","inicial":0.4116666667,"final":0.4266666667,"mudanca":0.015},{"grupo":"C1","inicial":0.3816666667,"final":0.1936666667,"mudanca":-0.188},{"grupo":"C2","inicial":0.461,"final":0.246,"mudanca":-0.215},{"grupo":"C1","inicial":0.4,"final":0.2633333333,"mudanca":-0.1366666667},{"grupo":"C2","inicial":0.257,"final":0.266,"mudanca":0.009},{"grupo":"C1","inicial":0.4103333333,"final":0.1836666667,"mudanca":-0.2266666667},{"grupo":"C2","inicial":0.4756666667,"final":0.2443333333,"mudanca":-0.2313333333},{"grupo":"C0","inicial":0.3643333333,"final":0.301,"mudanca":-0.0633333333},{"grupo":"C3","inicial":0.3893333333,"final":0.39,"mudanca":0.0006666667},{"grupo":"C2","inicial":0.3643333333,"final":0.336,"mudanca":-0.0283333333},{"grupo":"C1","inicial":0.4363333333,"final":0.241,"mudanca":-0.1953333333},{"grupo":"C3","inicial":0.4883333333,"final":0.4583333333,"mudanca":-0.03},{"grupo":"C0","inicial":0.3963333333,"final":0.271,"mudanca":-0.1253333333},{"grupo":"C3","inicial":0.442,"final":0.599,"mudanca":0.157},{"grupo":"C0","inicial":0.4176666667,"final":0.2073333333,"mudanca":-0.2103333333},{"grupo":"C1","inicial":0.4513333333,"final":0.185,"mudanca":-0.2663333333},{"grupo":"C2","inicial":0.4546666667,"final":0.2453333333,"mudanca":-0.2093333333},{"grupo":"C3","inicial":0.37,"final":0.5013333333,"mudanca":0.1313333333},{"grupo":"C0","inicial":0.3763333333,"final":0.29,"mudanca":-0.0863333333},{"grupo":"C1","inicial":0.388,"final":0.1963333333,"mudanca":-0.1916666667},{"grupo":"C1","inicial":0.5063333333,"final":0.1923333333,"mudanca":-0.314},{"grupo":"C3","inicial":0.347,"final":0.3953333333,"mudanca":0.0483333333},{"grupo":"C3","inicial":0.2996666667,"final":0.3536666667,"mudanca":0.054},{"grupo":"C0","inicial":0.426,"final":0.205,"mudanca":-0.221},{"grupo":"C0","inicial":0.4196666667,"final":0.2906666667,"mudanca":-0.129},{"grupo":"C3","inicial":0.3556666667,"final":0.3416666667,"mudanca":-0.014},{"grupo":"C2","inicial":0.3753333333,"final":0.112,"mudanca":-0.2633333333},{"grupo":"C2","inicial":0.3786666667,"final":0.276,"mudanca":-0.1026666667},{"grupo":"C0","inicial":0.449,"final":0.222,"mudanca":-0.227},{"grupo":"C2","inicial":0.4733333333,"final":0.4096666667,"mudanca":-0.0636666667},{"grupo":"C3","inicial":0.3073333333,"final":0.1956666667,"mudanca":-0.1116666667},{"grupo":"C1","inicial":0.402,"final":0.1823333333,"mudanca":-0.2196666667},{"grupo":"C1","inicial":0.4483333333,"final":0.1563333333,"mudanca":-0.292},{"grupo":"C3","inicial":0.345,"final":0.6143333333,"mudanca":0.2693333333}];
+        const pam_com_data = [{"grupo":"C3","inicial":0.3143333333,"final":0.295,"mudanca":-0.0193333333},{"grupo":"C0","inicial":0.4283333333,"final":0.6236666667,"mudanca":0.1953333333},{"grupo":"C2","inicial":0.2126666667,"final":0.5416666667,"mudanca":0.329},{"grupo":"C0","inicial":0.38,"final":0.608,"mudanca":0.228},{"grupo":"C2","inicial":0.5173333333,"final":0.6323333333,"mudanca":0.115},{"grupo":"C0","inicial":0.3106666667,"final":0.5996666667,"mudanca":0.289},{"grupo":"C1","inicial":0.54,"final":0.6086666667,"mudanca":0.0686666667},{"grupo":"C1","inicial":0.246,"final":0.532,"mudanca":0.286},{"grupo":"C2","inicial":0.2206666667,"final":0.583,"mudanca":0.3623333333},{"grupo":"C1","inicial":0.383,"final":0.562,"mudanca":0.179},{"grupo":"C2","inicial":0.449,"final":0.5326666667,"mudanca":0.0836666667},{"grupo":"C1","inicial":0.316,"final":0.5833333333,"mudanca":0.2673333333},{"grupo":"C2","inicial":0.2733333333,"final":0.5016666667,"mudanca":0.2283333333},{"grupo":"C0","inicial":0.3713333333,"final":0.6123333333,"mudanca":0.241},{"grupo":"C3","inicial":0.5726666667,"final":0.4313333333,"mudanca":-0.1413333333},{"grupo":"C2","inicial":0.378,"final":0.6276666667,"mudanca":0.2496666667},{"grupo":"C1","inicial":0.2726666667,"final":0.5803333333,"mudanca":0.3076666667},{"grupo":"C3","inicial":0.485,"final":0.5586666667,"mudanca":0.0736666667},{"grupo":"C0","inicial":0.287,"final":0.6496666667,"mudanca":0.3626666667},{"grupo":"C3","inicial":0.575,"final":0.5643333333,"mudanca":-0.0106666667},{"grupo":"C0","inicial":0.2666666667,"final":0.2533333333,"mudanca":-0.0133333333},{"grupo":"C1","inicial":0.287,"final":0.6003333333,"mudanca":0.3133333333},{"grupo":"C2","inicial":0.351,"final":0.2233333333,"mudanca":-0.1276666667},{"grupo":"C3","inicial":0.3876666667,"final":0.3943333333,"mudanca":0.0066666667},{"grupo":"C0","inicial":0.2743333333,"final":0.571,"mudanca":0.2966666667},{"grupo":"C1","inicial":0.1913333333,"final":0.4916666667,"mudanca":0.3003333333},{"grupo":"C1","inicial":0.2233333333,"final":0.2216666667,"mudanca":-0.0016666667},{"grupo":"C3","inicial":0.336,"final":0.339,"mudanca":0.003},{"grupo":"C3","inicial":0.3803333333,"final":0.3333333333,"mudanca":-0.047},{"grupo":"C0","inicial":0.2503333333,"final":0.588,"mudanca":0.3376666667},{"grupo":"C0","inicial":0.3203333333,"final":0.2296666667,"mudanca":-0.0906666667},{"grupo":"C3","inicial":0.3423333333,"final":0.3013333333,"mudanca":-0.041},{"grupo":"C2","inicial":0.324,"final":0.5783333333,"mudanca":0.2543333333},{"grupo":"C2","inicial":0.2463333333,"final":0.148,"mudanca":-0.0983333333},{"grupo":"C0","inicial":0.3546666667,"final":0.1813333333,"mudanca":-0.1733333333},{"grupo":"C2","inicial":0.3386666667,"final":0.2663333333,"mudanca":-0.0723333333},{"grupo":"C3","inicial":0.4683333333,"final":0.4386666667,"mudanca":-0.0296666667},{"grupo":"C1","inicial":0.2016666667,"final":0.7073333333,"mudanca":0.5056666667},{"grupo":"C1","inicial":0.2286666667,"final":0.5256666667,"mudanca":0.297},{"grupo":"C3","inicial":0.599,"final":0.668,"mudanca":0.069}];
+
+        function resizeVisibleCharts() {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+
+            const chartEls = activeTab.querySelectorAll('.chart');
+            chartEls.forEach((el) => {
+                if (el && el.data) {
+                    Plotly.Plots.resize(el);
+                }
+            });
+        }
+
+        function showTab(tabName) {
+            // Ocultar todas as abas
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remover classe active de todos os botões
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Mostrar aba selecionada e marcar botão
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Recalcular tamanho dos gráficos após a aba ficar visível
+            setTimeout(resizeVisibleCharts, 60);
+        }
+
+        // Função para preencher tabelas
+        function fillTable(tableBodyId, stats) {
+            const tbody = document.getElementById(tableBodyId);
+            tbody.innerHTML = '';
+            stats.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.Grupo}</td>
+                    <td>${row.n}</td>
+                    <td>${row['Média']}</td>
+                    <td>${row['Mediana']}</td>
+                    <td>${row['Des. Padrão']}</td>
+                    <td>${row['Mín']}</td>
+                    <td>${row['Máx']}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Função para criar box plots
+        function createBoxPlot(data, chartId, variable) {
+            const cores = {
+                'C0': '#ccece6',
+                'C1': '#99d8c9',
+                'C2': '#66c2a4',
+                'C3': '#2ca25f'
+            };
+
+            const grupos = {};
+            data.forEach(item => {
+                if (!grupos[item.grupo]) grupos[item.grupo] = [];
+                grupos[item.grupo].push(item[variable]);
+            });
+
+            const traces = [];
+            Object.keys(grupos).sort().forEach(grupo => {
+                traces.push({
+                    y: grupos[grupo],
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] || '#2ca25f' },
+                    line: { color: cores[grupo] || '#2ca25f' },
+                    fillcolor: 'rgba(0,0,0,0)'
+                });
+            });
+
+            const layout = {
+                title: '',
+                autosize: true,
+                yaxis: { title: 'Fv/Fm' },
+                xaxis: { title: 'Grupo' },
+                showlegend: false,
+                margin: { l: 50, r: 20, t: 20, b: 40 }
+            };
+
+            Plotly.newPlot(chartId, traces, layout, {responsive: true});
+        }
+
+        function createDistributionAndMedianPamCharts(semData, comData) {
+            const grupos = ['C0', 'C1', 'C2', 'C3'];
+
+            const semFinal = semData.filter(d => d.final !== undefined && d.final !== null);
+            const comFinal = comData.filter(d => d.final !== undefined && d.final !== null);
+
+            Plotly.newPlot('distIndividualPam', [
+                {
+                    x: semFinal.map(d => d.grupo),
+                    y: semFinal.map(d => d.final),
+                    name: 'SEM NaNO3',
+                    type: 'box',
+                    boxpoints: 'all',
+                    jitter: 0.35,
+                    pointpos: 0,
+                    marker: { color: '#99d8c9', size: 7 },
+                    line: { color: '#99d8c9' },
+                    fillcolor: 'rgba(0,0,0,0)'
+                },
+                {
+                    x: comFinal.map(d => d.grupo),
+                    y: comFinal.map(d => d.final),
+                    name: 'COM NaNO3',
+                    type: 'box',
+                    boxpoints: 'all',
+                    jitter: 0.35,
+                    pointpos: 0,
+                    marker: { color: '#2ca25f', size: 7 },
+                    line: { color: '#2ca25f' },
+                    fillcolor: 'rgba(0,0,0,0)'
+                }
+            ], {
+                title: '',
+                autosize: true,
+                boxmode: 'group',
+                yaxis: { title: 'Fv/Fm (Final)' },
+                xaxis: { title: 'Grupo', categoryorder: 'array', categoryarray: grupos },
+                margin: { l: 50, r: 20, t: 20, b: 40 }
+            }, { responsive: true });
+
+            const getMedian = (arr, g) => {
+                const row = arr.find(r => r.Grupo === g);
+                return row ? row['Mediana'] : null;
+            };
+
+            Plotly.newPlot('medianComparePam', [
+                {
+                    x: grupos,
+                    y: grupos.map(g => getMedian(pam_final_sem_stats, g)),
+                    name: 'SEM NaNO3',
+                    type: 'bar',
+                    marker: { color: '#99d8c9' }
+                },
+                {
+                    x: grupos,
+                    y: grupos.map(g => getMedian(pam_final_com_stats, g)),
+                    name: 'COM NaNO3',
+                    type: 'bar',
+                    marker: { color: '#2ca25f' }
+                }
+            ], {
+                title: '',
+                autosize: true,
+                barmode: 'group',
+                yaxis: { title: 'Mediana Fv/Fm (Final)' },
+                xaxis: { title: 'Grupo' },
+                margin: { l: 50, r: 20, t: 20, b: 40 }
+            }, { responsive: true });
+        }
+
+        // Preencher tabelas
+        window.addEventListener('DOMContentLoaded', function() {
+            fillTable('tableInitialSemBody', pam_inicial_sem_stats);
+            fillTable('tableFinalSemBody', pam_final_sem_stats);
+            fillTable('tableMudancaSemBody', pam_mudanca_sem_stats);
+            fillTable('tableInitialComBody', pam_inicial_com_stats);
+            fillTable('tableFinalComBody', pam_final_com_stats);
+            fillTable('tableMudancaComBody', pam_mudanca_com_stats);
+
+            // Criar box plots
+            const sem_data = [{"grupo":"C3","inicial":0.468,"final":0.4903333333,"mudanca":0.0223333333},{"grupo":"C0","inicial":0.4743333333,"final":0.2893333333,"mudanca":-0.185},{"grupo":"C2","inicial":0.406,"final":0.1243333333,"mudanca":-0.2816666667},{"grupo":"C0","inicial":0.454,"final":0.2046666667,"mudanca":-0.2493333333},{"grupo":"C2","inicial":0.4113333333,"final":0.2653333333,"mudanca":-0.146},{"grupo":"C0","inicial":0.5503333333,"final":0.1906666667,"mudanca":-0.3596666667},{"grupo":"C1","inicial":0.4116666667,"final":0.4266666667,"mudanca":0.015},{"grupo":"C1","inicial":0.3816666667,"final":0.1936666667,"mudanca":-0.188},{"grupo":"C2","inicial":0.461,"final":0.246,"mudanca":-0.215},{"grupo":"C1","inicial":0.4,"final":0.2633333333,"mudanca":-0.1366666667},{"grupo":"C2","inicial":0.257,"final":0.266,"mudanca":0.009},{"grupo":"C1","inicial":0.4103333333,"final":0.1836666667,"mudanca":-0.2266666667},{"grupo":"C2","inicial":0.4756666667,"final":0.2443333333,"mudanca":-0.2313333333},{"grupo":"C0","inicial":0.3643333333,"final":0.301,"mudanca":-0.0633333333},{"grupo":"C3","inicial":0.3893333333,"final":0.39,"mudanca":0.0006666667},{"grupo":"C2","inicial":0.3643333333,"final":0.336,"mudanca":-0.0283333333},{"grupo":"C1","inicial":0.4363333333,"final":0.241,"mudanca":-0.1953333333},{"grupo":"C3","inicial":0.4883333333,"final":0.4583333333,"mudanca":-0.03},{"grupo":"C0","inicial":0.3963333333,"final":0.271,"mudanca":-0.1253333333},{"grupo":"C3","inicial":0.442,"final":0.599,"mudanca":0.157},{"grupo":"C0","inicial":0.4176666667,"final":0.2073333333,"mudanca":-0.2103333333},{"grupo":"C1","inicial":0.4513333333,"final":0.185,"mudanca":-0.2663333333},{"grupo":"C2","inicial":0.4546666667,"final":0.2453333333,"mudanca":-0.2093333333},{"grupo":"C3","inicial":0.37,"final":0.5013333333,"mudanca":0.1313333333},{"grupo":"C0","inicial":0.3763333333,"final":0.29,"mudanca":-0.0863333333},{"grupo":"C1","inicial":0.388,"final":0.1963333333,"mudanca":-0.1916666667},{"grupo":"C1","inicial":0.5063333333,"final":0.1923333333,"mudanca":-0.314},{"grupo":"C3","inicial":0.347,"final":0.3953333333,"mudanca":0.0483333333},{"grupo":"C3","inicial":0.2996666667,"final":0.3536666667,"mudanca":0.054},{"grupo":"C0","inicial":0.426,"final":0.205,"mudanca":-0.221},{"grupo":"C0","inicial":0.4196666667,"final":0.2906666667,"mudanca":-0.129},{"grupo":"C3","inicial":0.3556666667,"final":0.3416666667,"mudanca":-0.014},{"grupo":"C2","inicial":0.3753333333,"final":0.112,"mudanca":-0.2633333333},{"grupo":"C2","inicial":0.3786666667,"final":0.276,"mudanca":-0.1026666667},{"grupo":"C0","inicial":0.449,"final":0.222,"mudanca":-0.227},{"grupo":"C2","inicial":0.4733333333,"final":0.4096666667,"mudanca":-0.0636666667},{"grupo":"C3","inicial":0.3073333333,"final":0.1956666667,"mudanca":-0.1116666667},{"grupo":"C1","inicial":0.402,"final":0.1823333333,"mudanca":-0.2196666667},{"grupo":"C1","inicial":0.4483333333,"final":0.1563333333,"mudanca":-0.292},{"grupo":"C3","inicial":0.345,"final":0.6143333333,"mudanca":0.2693333333}];
+            const com_data = [{"grupo":"C3","inicial":0.3143333333,"final":0.295,"mudanca":-0.0193333333},{"grupo":"C0","inicial":0.4283333333,"final":0.6236666667,"mudanca":0.1953333333},{"grupo":"C2","inicial":0.2126666667,"final":0.5416666667,"mudanca":0.329},{"grupo":"C0","inicial":0.38,"final":0.608,"mudanca":0.228},{"grupo":"C2","inicial":0.5173333333,"final":0.6323333333,"mudanca":0.115},{"grupo":"C0","inicial":0.3106666667,"final":0.5996666667,"mudanca":0.289},{"grupo":"C1","inicial":0.54,"final":0.6086666667,"mudanca":0.0686666667},{"grupo":"C1","inicial":0.246,"final":0.532,"mudanca":0.286},{"grupo":"C2","inicial":0.2206666667,"final":0.583,"mudanca":0.3623333333},{"grupo":"C1","inicial":0.383,"final":0.562,"mudanca":0.179},{"grupo":"C2","inicial":0.449,"final":0.5326666667,"mudanca":0.0836666667},{"grupo":"C1","inicial":0.316,"final":0.5833333333,"mudanca":0.2673333333},{"grupo":"C2","inicial":0.2733333333,"final":0.5016666667,"mudanca":0.2283333333},{"grupo":"C0","inicial":0.3713333333,"final":0.6123333333,"mudanca":0.241},{"grupo":"C3","inicial":0.5726666667,"final":0.4313333333,"mudanca":-0.1413333333},{"grupo":"C2","inicial":0.378,"final":0.6276666667,"mudanca":0.2496666667},{"grupo":"C1","inicial":0.2726666667,"final":0.5803333333,"mudanca":0.3076666667},{"grupo":"C3","inicial":0.485,"final":0.5586666667,"mudanca":0.0736666667},{"grupo":"C0","inicial":0.287,"final":0.6496666667,"mudanca":0.3626666667},{"grupo":"C3","inicial":0.575,"final":0.5643333333,"mudanca":-0.0106666667},{"grupo":"C0","inicial":0.2666666667,"final":0.2533333333,"mudanca":-0.0133333333},{"grupo":"C1","inicial":0.287,"final":0.6003333333,"mudanca":0.3133333333},{"grupo":"C2","inicial":0.351,"final":0.2233333333,"mudanca":-0.1276666667},{"grupo":"C3","inicial":0.3876666667,"final":0.3943333333,"mudanca":0.0066666667},{"grupo":"C0","inicial":0.2743333333,"final":0.571,"mudanca":0.2966666667},{"grupo":"C1","inicial":0.1913333333,"final":0.4916666667,"mudanca":0.3003333333},{"grupo":"C1","inicial":0.2233333333,"final":0.2216666667,"mudanca":-0.0016666667},{"grupo":"C3","inicial":0.336,"final":0.339,"mudanca":0.003},{"grupo":"C3","inicial":0.3803333333,"final":0.3333333333,"mudanca":-0.047},{"grupo":"C0","inicial":0.2503333333,"final":0.588,"mudanca":0.3376666667},{"grupo":"C0","inicial":0.3203333333,"final":0.2296666667,"mudanca":-0.0906666667},{"grupo":"C3","inicial":0.3423333333,"final":0.3013333333,"mudanca":-0.041},{"grupo":"C2","inicial":0.324,"final":0.5783333333,"mudanca":0.2543333333},{"grupo":"C2","inicial":0.2463333333,"final":0.148,"mudanca":-0.0983333333},{"grupo":"C0","inicial":0.3546666667,"final":0.1813333333,"mudanca":-0.1733333333},{"grupo":"C2","inicial":0.3386666667,"final":0.2663333333,"mudanca":-0.0723333333},{"grupo":"C3","inicial":0.4683333333,"final":0.4386666667,"mudanca":-0.0296666667},{"grupo":"C1","inicial":0.2016666667,"final":0.7073333333,"mudanca":0.5056666667},{"grupo":"C1","inicial":0.2286666667,"final":0.5256666667,"mudanca":0.297},{"grupo":"C3","inicial":0.599,"final":0.668,"mudanca":0.069}];
+
+            createBoxPlot(sem_data, 'boxplotInitialSem', 'inicial');
+            createBoxPlot(sem_data, 'boxplotFinalSem', 'final');
+            createBoxPlot(sem_data, 'boxplotMudancaSem', 'mudanca');
+            createBoxPlot(com_data, 'boxplotInitialCom', 'inicial');
+            createBoxPlot(com_data, 'boxplotFinalCom', 'final');
+            createBoxPlot(com_data, 'boxplotMudancaCom', 'mudanca');
+            createDistributionAndMedianPamCharts(sem_data, com_data);
+
+            setTimeout(resizeVisibleCharts, 80);
+
+            // Testes estatísticos
+            fillTable('tableTestsBody', [{"Condi\u00e7\u00e3o": "SEM NaNO3", "Vari\u00e1vel": "Inicial", "ANOVA F": 1.5843, "ANOVA p-valor": 0.2101, "KW H": 4.2008, "KW p-valor": 0.2406, "Significativo?": "N\u00e3o"}, {"Condi\u00e7\u00e3o": "SEM NaNO3", "Vari\u00e1vel": "Final", "ANOVA F": 12.0264, "ANOVA p-valor": 0.0, "KW H": 16.781, "KW p-valor": 0.0008, "Significativo?": "Sim \u2713"}, {"Condi\u00e7\u00e3o": "SEM NaNO3", "Vari\u00e1vel": "Mudan\u00e7a", "ANOVA F": 14.4769, "ANOVA p-valor": 0.0, "KW H": 18.7215, "KW p-valor": 0.0003, "Significativo?": "Sim \u2713"}, {"Condi\u00e7\u00e3o": "COM NaNO3", "Vari\u00e1vel": "Inicial", "ANOVA F": 5.1684, "ANOVA p-valor": 0.0045, "KW H": 11.8683, "KW p-valor": 0.0078, "Significativo?": "Sim \u2713"}, {"Condi\u00e7\u00e3o": "COM NaNO3", "Vari\u00e1vel": "Final", "ANOVA F": 0.8549, "ANOVA p-valor": 0.4733, "KW H": 2.8376, "KW p-valor": 0.4174, "Significativo?": "N\u00e3o"}, {"Condi\u00e7\u00e3o": "COM NaNO3", "Vari\u00e1vel": "Mudan\u00e7a", "ANOVA F": 5.3215, "ANOVA p-valor": 0.0039, "KW H": 10.822, "KW p-valor": 0.0127, "Significativo?": "Sim \u2713"}]);
+        });
+
+        // Mostrar primeira aba por padrão
+        window.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.tab-btn.active').click();
+        });
+
+        window.addEventListener('resize', function() {
+            resizeVisibleCharts();
+        });
+    </script>
+
+    <script>
+        (function() {
+            const root = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            const saved = localStorage.getItem('theme-preference') || 'light';
+
+            root.setAttribute('data-theme', saved);
+            btn.textContent = saved === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+
+            btn.addEventListener('click', function() {
+                const current = root.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('theme-preference', next);
+                btn.textContent = next === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+            });
+        })();
+    </script>
+</body>
+</html>

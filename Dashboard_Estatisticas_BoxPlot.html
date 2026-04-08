@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Análise Descritiva com Box Plots - Biorremediação</title>
+  <script src="libs/plotly-2.35.2.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --ink: #1d2a24;
+      --muted: #4b5f57;
+      --card: #ffffff;
+      --line: #d0d7ce;
+      --accent: #17684f;
+      --accent-2: #c73f13;
+      --shadow: 0 4px 12px rgba(56, 44, 21, 0.08);
+      --r: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      padding: 20px;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 2.2rem;
+      margin: 0 0 10px;
+      color: #174f3f;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 30px;
+      font-size: 1.05rem;
+    }
+
+    .section-title {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin: 40px 0 20px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .plot-container {
+      width: 100%;
+      height: 500px;
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      background: #e8f4f1;
+      border-left: 4px solid var(--accent);
+      padding: 15px;
+      border-radius: var(--r);
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      background: #f0f5f3;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    td:first-child, th:first-child {
+      text-align: left;
+    }
+
+    tr:hover {
+      background: #f9fdfb;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="Dashboard_Biorremediacao.html" class="back-link">← Voltar ao Dashboard Principal</a>
+
+    <h1>📊 Análise Descritiva com Box Plots</h1>
+    <p class="subtitle">Estatísticas detalhadas de Biorremediação com NaNO3</p>
+
+    <div class="info-box">
+      <strong>ℹ️ Sobre esta análise:</strong> Os box plots apresentam a distribuição completa dos dados, 
+      mostrando mediana (linha), quartis Q1 e Q3 (caixa), e mínimo/máximo (whiskers). 
+      Combinado com as estatísticas descritivas abaixo, oferece visão completa da variabilidade dos dados.
+    </div>
+
+    <!-- BIOMASSA -->
+    <div class="section-title">📈 Biomassa Final</div>
+
+    <div class="card">
+      <h3 style="margin: 0 0 15px; color: var(--accent);">Distribuição por Grupo e Tratamento</h3>
+      <div id="boxplot-biomassa" class="plot-container"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin: 0 0 15px; color: var(--accent);">Estatísticas Descritivas - Biomassa Final</h3>
+      <table id="table-biomassa"></table>
+    </div>
+
+    <!-- PAM -->
+    <div class="section-title">🌿 PAM Final (Fv/Fm)</div>
+
+    <div class="card">
+      <h3 style="margin: 0 0 15px; color: var(--accent);">Distribuição por Grupo e Tratamento</h3>
+      <div id="boxplot-pam" class="plot-container"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin: 0 0 15px; color: var(--accent);">Estatísticas Descritivas - PAM Final (Fv/Fm)</h3>
+      <table id="table-pam"></table>
+    </div>
+
+    <footer>
+      <p>Gerado automaticamente | Estatísticas calculadas com min, Q1, mediana, Q3, max</p>
+      <p><a href="Relatorio_Final_Biorremediacao.html" style="color: var(--accent);">Ver Relatório Completo</a></p>
+    </footer>
+  </div>
+
+  <script>
+    // Dados carregados
+    const dataBiomassa = [{"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.145}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.159}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.045}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.128}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.118}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.153}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.174}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.282}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.297}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.173}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.643}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.48}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.01}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.171}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.25}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.055}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.899}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.023}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.089}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.059}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.293}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.08}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.165}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.227}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.176}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.205}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.122}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.228}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.249}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.141}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.98}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.146}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.844}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.223}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.617}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.742}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.098}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.2}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.312}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.108}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.199}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.091}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.21}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.431}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.152}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.26}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.132}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.377}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.198}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.279}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.058}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.066}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.313}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 1.16}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.184}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.52}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.024}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.947}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.112}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.121}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.101}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.237}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.56}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.358}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.339}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.292}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.239}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.376}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.099}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.722}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.216}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 1.561}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 1.84}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 1.713}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.382}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.312}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.294}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.283}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.065}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 1.671}];
+    const dataPAM = [{"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.2893}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.2047}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.1907}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.301}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.271}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.2073}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.29}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.205}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.2907}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "Valor": 0.222}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.6237}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.608}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.5997}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.6123}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.6497}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.2533}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.571}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.588}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.2297}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "Valor": 0.1813}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.4267}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.1937}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.2633}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.1837}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.241}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.185}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.1963}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.1923}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.1823}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "Valor": 0.1563}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.6087}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.532}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.562}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.5833}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.5803}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.6003}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.4917}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.2217}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.7073}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "Valor": 0.5257}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.1243}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.2653}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.246}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.266}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.2443}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.336}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.2453}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.112}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.276}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "Valor": 0.4097}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.5417}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.6323}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.583}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.5327}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.5017}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.6277}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.2233}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.5783}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.148}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "Valor": 0.2663}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.2907}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.3417}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.112}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.276}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.222}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.4097}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.1957}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.1823}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.1563}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "Valor": 0.6143}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.295}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.4313}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.5587}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.5643}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.3943}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.339}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.3333}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.3013}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.4387}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "Valor": 0.668}];
+    const estBiomassa = [{"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C0", "N": 10, "Mean": 0.1674, "Std": 0.0705, "Min": 0.045, "Q1": 0.1322, "Median": 0.156, "Q3": 0.1737, "Max": 0.297}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C0", "N": 10, "Mean": 0.2679, "Std": 0.29, "Min": 0.01, "Q1": 0.056, "Median": 0.13, "Q3": 0.4225, "Max": 0.899}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C1", "N": 10, "Mean": 0.1886, "Std": 0.0609, "Min": 0.08, "Q1": 0.147, "Median": 0.1905, "Q3": 0.2278, "Max": 0.293}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C1", "N": 10, "Mean": 0.427, "Std": 0.3179, "Min": 0.098, "Q1": 0.1595, "Median": 0.2675, "Q3": 0.7108, "Max": 0.98}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C2", "N": 10, "Mean": 0.2329, "Std": 0.1013, "Min": 0.091, "Q1": 0.1635, "Median": 0.2045, "Q3": 0.2742, "Max": 0.431}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C2", "N": 10, "Mean": 0.3505, "Std": 0.381, "Min": 0.024, "Q1": 0.0775, "Median": 0.1525, "Q3": 0.4682, "Max": 1.16}, {"Variavel": "Biomassa Final", "Tratamento": "Sem NaNO3", "Grupo": "C3", "N": 10, "Mean": 0.3323, "Std": 0.1827, "Min": 0.099, "Q1": 0.2375, "Median": 0.3155, "Q3": 0.3715, "Max": 0.722}, {"Variavel": "Biomassa Final", "Tratamento": "Com NaNO3", "Grupo": "C3", "N": 10, "Mean": 0.8337, "Std": 0.7113, "Min": 0.065, "Q1": 0.2857, "Median": 0.347, "Q3": 1.6435, "Max": 1.84}];
+    const estPAM = [{"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C0", "N": 10, "Mean": 0.2472, "Std": 0.0424, "Min": 0.1907, "Q1": 0.2056, "Median": 0.2465, "Q3": 0.2898, "Max": 0.301}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C0", "N": 10, "Mean": 0.4917, "Std": 0.1787, "Min": 0.1813, "Q1": 0.3328, "Median": 0.5938, "Q3": 0.6112, "Max": 0.6497}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C1", "N": 10, "Mean": 0.2221, "Std": 0.0742, "Min": 0.1563, "Q1": 0.184, "Median": 0.193, "Q3": 0.2298, "Max": 0.4267}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C1", "N": 10, "Mean": 0.5413, "Std": 0.1201, "Min": 0.2217, "Q1": 0.5272, "Median": 0.5712, "Q3": 0.5961, "Max": 0.7073}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C2", "N": 10, "Mean": 0.2525, "Std": 0.083, "Min": 0.112, "Q1": 0.2446, "Median": 0.2557, "Q3": 0.2735, "Max": 0.4097}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C2", "N": 10, "Mean": 0.4635, "Std": 0.1707, "Min": 0.148, "Q1": 0.3252, "Median": 0.5372, "Q3": 0.5818, "Max": 0.6323}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Sem NaNO3", "Grupo": "C3", "N": 10, "Mean": 0.2801, "Std": 0.14, "Min": 0.112, "Q1": 0.1857, "Median": 0.249, "Q3": 0.3289, "Max": 0.6143}, {"Variavel": "PAM Final (Fv/Fm)", "Tratamento": "Com NaNO3", "Grupo": "C3", "N": 10, "Mean": 0.4324, "Std": 0.1204, "Min": 0.295, "Q1": 0.3348, "Median": 0.4128, "Q3": 0.5287, "Max": 0.668}];
+
+    function gerarBoxPlot(elementId, dados, titulo) {
+      const grupos = [...new Set(dados.map(d => d.Grupo))].sort();
+      const tratamentos = [...new Set(dados.map(d => d.Tratamento))];
+      const cores = {'Sem NaNO3': '#2e8b57', 'Com NaNO3': '#dc143c'};
+
+      const traces = [];
+      for (const trat of tratamentos) {
+        for (const grupo of grupos) {
+          const valores = dados
+            .filter(d => d.Grupo === grupo && d.Tratamento === trat)
+            .map(d => d.Valor)
+            .sort((a, b) => a - b);
+
+          if (valores.length > 0) {
+            traces.push({
+              y: valores,
+              name: `${grupo} - ${trat}`,
+              type: 'box',
+              boxmean: 'sd',
+              marker: {color: cores[trat]},
+              line: {color: cores[trat]}
+            });
+          }
+        }
+      }
+
+      const layout = {
+        title: titulo,
+        yaxis: { title: 'Valor' },
+        xaxis: { title: 'Grupo - Tratamento' },
+        showlegend: true,
+        plot_bgcolor: '#f9fdfb',
+        paper_bgcolor: '#ffffff',
+        font: { family: 'IBM Plex Sans, sans-serif', color: '#1d2a24', size: 11 },
+        margin: { l: 60, r: 40, t: 50, b: 60 },
+        height: 500
+      };
+
+      Plotly.newPlot(elementId, traces, layout, { responsive: true });
+    }
+
+    function gerarTabela(elementId, dados) {
+      const html = `
+        <tr>
+          <th>Grupo</th>
+          <th>Tratamento</th>
+          <th>N</th>
+          <th>Mean</th>
+          <th>Std</th>
+          <th>Min</th>
+          <th>Q1</th>
+          <th>Median</th>
+          <th>Q3</th>
+          <th>Max</th>
+        </tr>
+        ${dados.map(d => `
+          <tr>
+            <td>${d.Grupo}</td>
+            <td>${d.Tratamento}</td>
+            <td>${d.N}</td>
+            <td>${d.Mean.toFixed(4)}</td>
+            <td>${d.Std.toFixed(4)}</td>
+            <td>${d.Min.toFixed(4)}</td>
+            <td>${d.Q1.toFixed(4)}</td>
+            <td>${d.Median.toFixed(4)}</td>
+            <td>${d.Q3.toFixed(4)}</td>
+            <td>${d.Max.toFixed(4)}</td>
+          </tr>
+        `).join('')}
+      `;
+      document.getElementById(elementId).innerHTML = html;
+    }
+
+    // Inicializar
+    gerarBoxPlot('boxplot-biomassa', dataBiomassa, 'Box Plot - Biomassa Final');
+    gerarBoxPlot('boxplot-pam', dataPAM, 'Box Plot - PAM Final (Fv/Fm)');
+
+    gerarTabela('table-biomassa', estBiomassa);
+    gerarTabela('table-pam', estPAM);
+  </script>
+</body>
+</html>

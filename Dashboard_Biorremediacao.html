@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Análise de Biorremediação</title>
+    <script src="libs/plotly-2.35.2.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e5f5f9 0%, #99d8c9 100%);
+            color: #16352d;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            color: #2ca25f;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card.c0 {
+            border-left-color: #ccece6;
+        }
+
+        .metric-card.c1 {
+            border-left-color: #99d8c9;
+        }
+
+        .metric-card.c2 {
+            border-left-color: #66c2a4;
+        }
+
+        .metric-card.c3 {
+            border-left-color: #2ca25f;
+        }
+
+        .metric-card h3 {
+            color: #333;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2ca25f;
+            margin-bottom: 10px;
+        }
+
+        .metric-card .sub-info {
+            font-size: 0.85em;
+            color: #999;
+            line-height: 1.6;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h2 {
+            color: #2ca25f;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d9efe8;
+        }
+
+        .chart {
+            width: 100%;
+            height: 400px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .table-container h2 {
+            color: #2ca25f;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d9efe8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #e5f5f9;
+            color: #1e5f47;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #99d8c9;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f3fbf8;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            background: #f2fbf8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #66c2a4;
+        }
+
+        .stat-item strong {
+            display: block;
+            color: #2ca25f;
+            margin-bottom: 5px;
+        }
+
+        .stat-item span {
+            font-size: 1.3em;
+            color: #333;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-item.c0 .legend-color {
+            background: #ccece6;
+        }
+
+        .legend-item.c1 .legend-color {
+            background: #99d8c9;
+        }
+
+        .legend-item.c2 .legend-color {
+            background: #66c2a4;
+        }
+
+        .legend-item.c3 .legend-color {
+            background: #2ca25f;
+        }
+
+        .conclusion {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            border-left: 5px solid #2ca25f;
+        }
+
+        .conclusion h2 {
+            color: #2ca25f;
+            margin-bottom: 15px;
+        }
+
+        .conclusion p {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .corr-panel {
+            background: #f2fbf8;
+            border: 1px solid #d9efe8;
+            border-left: 5px solid #2ca25f;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 24px;
+            color: #2a554a;
+            line-height: 1.65;
+        }
+
+        .corr-panel h2 {
+            color: #2ca25f;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .corr-panel ul { margin: 6px 0 0 18px; }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .metric-card {
+                padding: 15px;
+            }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 9999;
+            background: #fff;
+            color: #2ca25f;
+            border: 1px solid #bcded4;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(23, 74, 57, 0.12);
+        }
+
+        html[data-theme='dark'] body {
+            background: linear-gradient(135deg, #0f1f1a 0%, #173229 100%);
+            color: #e8f5ef;
+        }
+
+        html[data-theme='dark'] header,
+        html[data-theme='dark'] .metric-card,
+        html[data-theme='dark'] .chart-container,
+        html[data-theme='dark'] .table-container,
+        html[data-theme='dark'] .conclusion {
+            background: #132923;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        html[data-theme='dark'] .conclusion {
+            background: #173228;
+            border-left-color: #66c2a4;
+        }
+
+        html[data-theme='dark'] .conclusion h2 {
+            color: #ccece6;
+        }
+
+        html[data-theme='dark'] .corr-panel {
+            background: #173228;
+            border-color: #2b5143;
+            border-left-color: #66c2a4;
+            color: #dff2e9;
+        }
+
+        html[data-theme='dark'] .corr-panel h2 {
+            color: #ccece6;
+        }
+
+        html[data-theme='dark'] header p,
+        html[data-theme='dark'] .metric-card h3,
+        html[data-theme='dark'] .metric-card .sub-info,
+        html[data-theme='dark'] .conclusion p,
+        html[data-theme='dark'] .stat-item span {
+            color: #d6ebe2;
+        }
+
+        html[data-theme='dark'] td {
+            border-bottom: 1px solid #2b5143;
+            color: #e8f5ef;
+        }
+
+        html[data-theme='dark'] th {
+            background: #1a3a30;
+            color: #d8efe6;
+            border-bottom-color: #2e6955;
+        }
+
+        html[data-theme='dark'] tr:hover {
+            background: #1d3d32;
+        }
+
+        html[data-theme='dark'] .stat-item {
+            background: #173228;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" type="button">🌙 Escuro</button>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📊 Dashboard de Biorremediação</h1>
+            <p>Análise estatística dos dados experimentais - Peso por Grupo (C0, C1, C2, C3)</p>
+        </header>
+
+        <div class="corr-panel">
+            <h2>🔗 Interpretação de Correlações (Guia Rápido)</h2>
+            <ul>
+                <li>Correlação descreve a associação entre variáveis, em direção e intensidade.</li>
+                <li>Coeficiente perto de +1: positiva forte; perto de -1: negativa forte; perto de 0: associação fraca.</li>
+                <li>Correlação não confirma causalidade.</li>
+                <li>Relate com p-valor e n para indicar a confiabilidade estatística.</li>
+                <li>Contexto biológico: verifique se mudanças de peso acompanham sinais fisiológicos de desempenho.</li>
+            </ul>
+        </div>
+
+        <!-- Métricas Principais por Grupo -->
+        <div class="metrics-grid" id="metricsGrid"></div>
+
+        <!-- Gráficos -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2>📈 Distribuição por Grupo (Box Plot)</h2>
+                <div class="chart" id="boxplotChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <h2>📊 Média ± Erro Padrão</h2>
+                <div class="chart" id="barChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <h2>🎯 Comparação de Medianas</h2>
+                <div class="chart" id="medianChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <h2>📍 Distribuição Individual</h2>
+                <div class="chart" id="scatterChart"></div>
+            </div>
+        </div>
+
+        <!-- Tabela de Estatísticas -->
+        <div class="table-container">
+            <h2>📋 Estatísticas Descritivas</h2>
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th>Grupo</th>
+                        <th>n</th>
+                        <th>Média</th>
+                        <th>Mediana</th>
+                        <th>Des. Padrão</th>
+                        <th>Erro Padrão</th>
+                        <th>Mínimo</th>
+                        <th>Máximo</th>
+                        <th>Q1</th>
+                        <th>Q3</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Testes Estatísticos -->
+        <div class="table-container">
+            <h2>🔬 Testes de Comparação</h2>
+            <div class="stats-grid" id="testResults"></div>
+        </div>
+
+        <!-- Legenda -->
+        <div class="table-container">
+            <h2>🎨 Legenda dos Grupos</h2>
+            <div class="legend" id="legend"></div>
+        </div>
+
+        <!-- Conclusões -->
+        <div class="conclusion">
+            <h2>✅ Conclusões e Interpretações</h2>
+            <p><strong>Resultado principal:</strong> Não há diferença estatisticamente significativa entre os grupos (ANOVA p=0.5214; Kruskal-Wallis p=0.6386).</p>
+            <p><strong>Pesos médios por grupo:</strong> C0 (0.0925g) < C3 (0.1010g) < C2 (0.1034g) < C1 (0.1080g)</p>
+            <p><strong>Interpretação:</strong> O grupo C1 apresenta ligeiramente maior peso médio, mas essa diferença não é estatisticamente significativa. A variabilidade dentro dos grupos é similar.</p>
+            <p><strong>Recomendação:</strong> Os grupos apresentam comportamentos similares. Investigações futuras devem considerar outras variáveis ou aumentar o tamanho amostral.</p>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos grupos
+        const data = {
+            "C0": {
+                "dados": [0.082, 0.093, 0.069, 0.045, 0.071, 0.096, 0.131, 0.13, 0.104, 0.104],
+                "media": 0.0925,
+                "mediana": 0.0945,
+                "desvio": 0.027,
+                "min": 0.045,
+                "max": 0.131,
+                "q1": 0.0738,
+                "q3": 0.104,
+                "n": 10
+            },
+            "C1": {
+                "dados": [0.117, 0.074, 0.091, 0.129, 0.078, 0.116, 0.145, 0.121, 0.103, 0.106],
+                "media": 0.108,
+                "mediana": 0.111,
+                "desvio": 0.0224,
+                "min": 0.074,
+                "max": 0.145,
+                "q1": 0.094,
+                "q3": 0.12,
+                "n": 10
+            },
+            "C2": {
+                "dados": [0.126, 0.08, 0.14, 0.107, 0.135, 0.081, 0.082, 0.1, 0.098, 0.085],
+                "media": 0.1034,
+                "mediana": 0.099,
+                "desvio": 0.023,
+                "min": 0.08,
+                "max": 0.14,
+                "q1": 0.0828,
+                "q3": 0.1212,
+                "n": 10
+            },
+            "C3": {
+                "dados": [0.1, 0.083, 0.088, 0.077, 0.091, 0.13, 0.133, 0.117, 0.076, 0.115],
+                "media": 0.101,
+                "mediana": 0.0955,
+                "desvio": 0.0214,
+                "min": 0.076,
+                "max": 0.133,
+                "q1": 0.0842,
+                "q3": 0.1165,
+                "n": 10
+            }
+        };
+
+        const cores = {
+            "C0": "#ccece6",
+            "C1": "#99d8c9",
+            "C2": "#66c2a4",
+            "C3": "#2ca25f"
+        };
+
+        const nomes = {
+            "C0": "Controle 0",
+            "C1": "Controle 1",
+            "C2": "Controle 2",
+            "C3": "Controle 3"
+        };
+
+        // 1. Criar Métricas Principais
+        function createMetrics() {
+            const container = document.getElementById('metricsGrid');
+            for (const [grupo, stats] of Object.entries(data)) {
+                const card = document.createElement('div');
+                card.className = `metric-card ${grupo.toLowerCase()}`;
+                card.innerHTML = `
+                    <h3>${grupo} - ${nomes[grupo]}</h3>
+                    <div class="value">${stats.media.toFixed(4)} g</div>
+                    <div class="sub-info">
+                        <strong>Média</strong><br>
+                        Mediana: ${stats.mediana.toFixed(4)} g<br>
+                        Desvio: ±${stats.desvio.toFixed(4)} g<br>
+                        Range: [${stats.min.toFixed(4)}, ${stats.max.toFixed(4)}]<br>
+                        n = ${stats.n}
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        // 2. Box Plot
+        function createBoxplot() {
+            const boxTraces = [];
+            for (const grupo of Object.keys(data)) {
+                boxTraces.push({
+                    y: data[grupo].dados,
+                    name: grupo,
+                    type: 'box',
+                    marker: { color: cores[grupo] },
+                    boxmean: 'sd'
+                });
+            }
+
+            const layout = {
+                title: '',
+                yaxis: { title: 'Peso (g)' },
+                hovermode: 'closest',
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+
+            Plotly.newPlot('boxplotChart', boxTraces, layout, { responsive: true });
+        }
+
+        // 3. Bar Chart com Erro
+        function createBarChart() {
+            const grupos = Object.keys(data).sort();
+            const medias = grupos.map(g => data[g].media);
+            const erros = grupos.map(g => data[g].desvio / Math.sqrt(data[g].n));
+
+            const trace = {
+                x: grupos,
+                y: medias,
+                error_y: {
+                    type: 'data',
+                    array: erros,
+                    visible: true
+                },
+                type: 'bar',
+                marker: {
+                    color: grupos.map(g => cores[g])
+                }
+            };
+
+            const layout = {
+                title: '',
+                yaxis: { title: 'Peso Médio (g)' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+
+            Plotly.newPlot('barChart', [trace], layout, { responsive: true });
+        }
+
+        // 4. Median Comparison
+        function createMedianChart() {
+            const grupos = Object.keys(data).sort();
+            const medianas = grupos.map(g => data[g].mediana);
+
+            const trace = {
+                x: grupos,
+                y: medianas,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#2ca25f', width: 3 },
+                marker: {
+                    size: 12,
+                    color: grupos.map(g => cores[g]),
+                    line: { color: '#2ca25f', width: 2 }
+                }
+            };
+
+            const layout = {
+                title: '',
+                yaxis: { title: 'Mediana (g)' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+
+            Plotly.newPlot('medianChart', [trace], layout, { responsive: true });
+        }
+
+        // 5. Scatter Plot
+        function createScatterPlot() {
+            const traces = [];
+            for (const grupo of Object.keys(data)) {
+                const xValues = Array(data[grupo].dados.length).fill(grupo);
+                traces.push({
+                    x: xValues,
+                    y: data[grupo].dados,
+                    mode: 'markers',
+                    name: grupo,
+                    marker: {
+                        size: 10,
+                        color: cores[grupo],
+                        opacity: 0.7
+                    },
+                    type: 'scatter'
+                });
+            }
+
+            const layout = {
+                title: '',
+                yaxis: { title: 'Peso (g)' },
+                xaxis: { title: 'Grupo' },
+                margin: { l: 50, r: 20, t: 30, b: 50 }
+            };
+
+            Plotly.newPlot('scatterChart', traces, layout, { responsive: true });
+        }
+
+        // 6. Populat Stats Table
+        function populateStatsTable() {
+            const tbody = document.getElementById('statsTableBody');
+            for (const grupo of Object.keys(data).sort()) {
+                const stats = data[grupo];
+                const row = `
+                    <tr>
+                        <td><strong>${grupo}</strong></td>
+                        <td>${stats.n}</td>
+                        <td>${stats.media.toFixed(4)}</td>
+                        <td>${stats.mediana.toFixed(4)}</td>
+                        <td>${stats.desvio.toFixed(4)}</td>
+                        <td>${(stats.desvio / Math.sqrt(stats.n)).toFixed(4)}</td>
+                        <td>${stats.min.toFixed(4)}</td>
+                        <td>${stats.max.toFixed(4)}</td>
+                        <td>${stats.q1.toFixed(4)}</td>
+                        <td>${stats.q3.toFixed(4)}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            }
+        }
+
+        // 7. Test Results
+        function displayTestResults() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = `
+                <div class="stat-item">
+                    <strong>ANOVA</strong>
+                    <span>F = 0.7645<br>p = 0.5214</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Kruskal-Wallis</strong>
+                    <span>H = 1.6927<br>p = 0.6386</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Conclusão</strong>
+                    <span>Sem diferença significativa<br>(p > 0.05)</span>
+                </div>
+            `;
+        }
+
+        // 8. Legend
+        function createLegend() {
+            const container = document.getElementById('legend');
+            for (const grupo of Object.keys(data).sort()) {
+                const item = document.createElement('div');
+                item.className = `legend-item ${grupo.toLowerCase()}`;
+                item.innerHTML = `
+                    <div class="legend-color"></div>
+                    <span>${grupo} - ${nomes[grupo]}</span>
+                `;
+                container.appendChild(item);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const root = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            const saved = localStorage.getItem('theme-preference') || 'light';
+
+            root.setAttribute('data-theme', saved);
+            btn.textContent = saved === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+
+            btn.addEventListener('click', function() {
+                const current = root.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('theme-preference', next);
+                btn.textContent = next === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+            });
+
+            createMetrics();
+            createBoxplot();
+            createBarChart();
+            createMedianChart();
+            createScatterPlot();
+            populateStatsTable();
+            displayTestResults();
+            createLegend();
+        });
+    </script>
+</body>
+</html>
