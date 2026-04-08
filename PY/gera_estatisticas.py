@@ -6,10 +6,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Configuração
-ods_file = "DADOS DO EXPERIMENTO BIORREMEDIAÇÃO - DORLAM'S.ods"
+source_file = "DADOS DO EXPERIMENTO BIORREMEDIAÇÃO - DORLAM'S.xls"
 
 def extract_group(frascos_str):
-    match = re.search(r'(C[0-3])', str(frascos_str))
+    txt = str(frascos_str).upper().strip().replace("CO", "C0")
+    match = re.search(r'(C[0-3])', txt)
     return match.group(1) if match else None
 
 def calcular_estatisticas(dados):
@@ -39,25 +40,25 @@ print("\n" + "─"*80)
 print("PROCESSANDO DADOS DE BIOMASSA")
 print("─"*80)
 
-biomasssa_inicial_sem = pd.read_excel(ods_file, sheet_name='Biomassa inicial- sem NaNO3', engine='odf')
-biomassa_final_sem = pd.read_excel(ods_file, sheet_name='Biomassa Final sem NaNO3', engine='odf')
-biomassa_inicial_com = pd.read_excel(ods_file, sheet_name='Biomassa inicial  com NaNO3', engine='odf')
-biomassa_final_com = pd.read_excel(ods_file, sheet_name='Biomassa final com NaNO3', engine='odf')
+biomasssa_inicial_sem = pd.read_excel(source_file, sheet_name='Biomassa inicial- sem NaNO3')
+biomassa_final_sem = pd.read_excel(source_file, sheet_name='Biomassa Final sem NaNO3', header=1)
+biomassa_inicial_com = pd.read_excel(source_file, sheet_name='Biomassa inicial  com NaNO3')
+biomassa_final_com = pd.read_excel(source_file, sheet_name='Biomassa final com NaNO3')
 
 for df in [biomasssa_inicial_sem, biomassa_final_sem, biomassa_inicial_com, biomassa_final_com]:
     df.columns = df.columns.str.strip()
 
 biomassa_sem = pd.DataFrame()
-biomassa_sem['grupo'] = biomasssa_inicial_sem.iloc[:, 0].apply(extract_group)
-biomassa_sem['inicial'] = pd.to_numeric(biomasssa_inicial_sem.iloc[:, 1], errors='coerce')
-biomassa_sem['final'] = pd.to_numeric(biomassa_final_sem.iloc[:, 1], errors='coerce')
+biomassa_sem['grupo'] = biomasssa_inicial_sem['TRATAMENTOS'].apply(extract_group)
+biomassa_sem['inicial'] = pd.to_numeric(biomasssa_inicial_sem['INICIAL'], errors='coerce')
+biomassa_sem['final'] = pd.to_numeric(biomassa_final_sem['FINAL'], errors='coerce')
 biomassa_sem['crescimento'] = biomassa_sem['final'] - biomassa_sem['inicial']
 biomassa_sem_clean = biomassa_sem.dropna()
 
 biomassa_com = pd.DataFrame()
-biomassa_com['grupo'] = biomassa_inicial_com.iloc[:, 0].apply(extract_group)
-biomassa_com['inicial'] = pd.to_numeric(biomassa_inicial_com.iloc[:, 1], errors='coerce')
-biomassa_com['final'] = pd.to_numeric(biomassa_final_com.iloc[:, 1], errors='coerce')
+biomassa_com['grupo'] = biomassa_inicial_com['TRATAMENTOS'].apply(extract_group)
+biomassa_com['inicial'] = pd.to_numeric(biomassa_inicial_com['BIOMASSA'], errors='coerce')
+biomassa_com['final'] = pd.to_numeric(biomassa_final_com['PESO'], errors='coerce')
 biomassa_com['crescimento'] = biomassa_com['final'] - biomassa_com['inicial']
 biomassa_com_clean = biomassa_com[(biomassa_com['final'] < 1000)].dropna()
 
@@ -72,25 +73,25 @@ print("\n" + "─"*80)
 print("PROCESSANDO DADOS DE PAM")
 print("─"*80)
 
-pam_initial_sem = pd.read_excel(ods_file, sheet_name='PAM INICIAL-sem NaNO3', engine='odf')
-pam_final_sem = pd.read_excel(ods_file, sheet_name='PAM sem NaNO3', engine='odf')
-pam_initial_com = pd.read_excel(ods_file, sheet_name='PAM 1- NaNO3', engine='odf')
-pam_final_com = pd.read_excel(ods_file, sheet_name='PAM 2- NaNO3', engine='odf')
+pam_initial_sem = pd.read_excel(source_file, sheet_name='PAM INICIAL sem NaNO3')
+pam_final_sem = pd.read_excel(source_file, sheet_name='PAM FINAL sem NaNO3')
+pam_initial_com = pd.read_excel(source_file, sheet_name='PAM INICIAL COM NaNO3')
+pam_final_com = pd.read_excel(source_file, sheet_name='PAM FINAL COM NaNO3')
 
 for df in [pam_initial_sem, pam_final_sem, pam_initial_com, pam_final_com]:
     df.columns = df.columns.str.strip()
 
 pam_sem = pd.DataFrame()
-pam_sem['grupo'] = pam_initial_sem['FRASCOS'].apply(extract_group)
-pam_sem['inicial'] = pam_initial_sem.iloc[:, 1:4].mean(axis=1)
-pam_sem['final'] = pam_final_sem.iloc[:, 1:4].mean(axis=1)
+pam_sem['grupo'] = pam_initial_sem['TRATAMENTOS'].apply(extract_group)
+pam_sem['inicial'] = pam_initial_sem.iloc[:, -3:].apply(pd.to_numeric, errors='coerce').mean(axis=1)
+pam_sem['final'] = pam_final_sem.iloc[:, -3:].apply(pd.to_numeric, errors='coerce').mean(axis=1)
 pam_sem['mudanca'] = pam_sem['final'] - pam_sem['inicial']
 pam_sem_clean = pam_sem.dropna()
 
 pam_com = pd.DataFrame()
-pam_com['grupo'] = pam_initial_com['FRASCOS'].apply(extract_group)
-pam_com['inicial'] = pam_initial_com.iloc[:, 1:4].mean(axis=1)
-pam_com['final'] = pam_final_com.iloc[:, 1:4].mean(axis=1)
+pam_com['grupo'] = pam_initial_com['TRATAMENTOS'].apply(extract_group)
+pam_com['inicial'] = pam_initial_com.iloc[:, -3:].apply(pd.to_numeric, errors='coerce').mean(axis=1)
+pam_com['final'] = pam_final_com.iloc[:, -3:].apply(pd.to_numeric, errors='coerce').mean(axis=1)
 pam_com['mudanca'] = pam_com['final'] - pam_com['inicial']
 pam_com_clean = pam_com.dropna()
 

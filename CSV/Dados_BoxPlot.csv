@@ -9,14 +9,14 @@ Biomassa Final,Sem NaNO3,C0,0.174
 Biomassa Final,Sem NaNO3,C0,0.282
 Biomassa Final,Sem NaNO3,C0,0.297
 Biomassa Final,Sem NaNO3,C0,0.173
+Biomassa Final,Com NaNO3,C0,0.643
 Biomassa Final,Com NaNO3,C0,0.48
+Biomassa Final,Com NaNO3,C0,0.01
 Biomassa Final,Com NaNO3,C0,0.171
+Biomassa Final,Com NaNO3,C0,0.25
 Biomassa Final,Com NaNO3,C0,0.055
-Biomassa Final,Com NaNO3,C0,0.223
-Biomassa Final,Com NaNO3,C0,0.312
-Biomassa Final,Com NaNO3,C0,0.058
-Biomassa Final,Com NaNO3,C0,0.184
-Biomassa Final,Com NaNO3,C0,0.121
+Biomassa Final,Com NaNO3,C0,0.899
+Biomassa Final,Com NaNO3,C0,0.023
 Biomassa Final,Com NaNO3,C0,0.089
 Biomassa Final,Com NaNO3,C0,0.059
 PAM Final (Fv/Fm),Sem NaNO3,C0,0.2893
@@ -49,14 +49,15 @@ Biomassa Final,Sem NaNO3,C1,0.122
 Biomassa Final,Sem NaNO3,C1,0.228
 Biomassa Final,Sem NaNO3,C1,0.249
 Biomassa Final,Sem NaNO3,C1,0.141
-Biomassa Final,Com NaNO3,C1,0.899
-Biomassa Final,Com NaNO3,C1,0.023
-Biomassa Final,Com NaNO3,C1,0.059
+Biomassa Final,Com NaNO3,C1,0.98
 Biomassa Final,Com NaNO3,C1,0.146
+Biomassa Final,Com NaNO3,C1,0.844
+Biomassa Final,Com NaNO3,C1,0.223
+Biomassa Final,Com NaNO3,C1,0.617
+Biomassa Final,Com NaNO3,C1,0.742
 Biomassa Final,Com NaNO3,C1,0.098
-Biomassa Final,Com NaNO3,C1,0.066
-Biomassa Final,Com NaNO3,C1,0.52
-Biomassa Final,Com NaNO3,C1,0.986
+Biomassa Final,Com NaNO3,C1,0.2
+Biomassa Final,Com NaNO3,C1,0.312
 Biomassa Final,Com NaNO3,C1,0.108
 PAM Final (Fv/Fm),Sem NaNO3,C1,0.4267
 PAM Final (Fv/Fm),Sem NaNO3,C1,0.1937
@@ -88,13 +89,13 @@ Biomassa Final,Sem NaNO3,C2,0.132
 Biomassa Final,Sem NaNO3,C2,0.377
 Biomassa Final,Sem NaNO3,C2,0.198
 Biomassa Final,Sem NaNO3,C2,0.279
-Biomassa Final,Com NaNO3,C2,0.01
-Biomassa Final,Com NaNO3,C2,0.25
-Biomassa Final,Com NaNO3,C2,0.089
-Biomassa Final,Com NaNO3,C2,0.98
-Biomassa Final,Com NaNO3,C2,0.844
-Biomassa Final,Com NaNO3,C2,0.742
+Biomassa Final,Com NaNO3,C2,0.058
+Biomassa Final,Com NaNO3,C2,0.066
 Biomassa Final,Com NaNO3,C2,0.313
+Biomassa Final,Com NaNO3,C2,1.16
+Biomassa Final,Com NaNO3,C2,0.184
+Biomassa Final,Com NaNO3,C2,0.52
+Biomassa Final,Com NaNO3,C2,0.024
 Biomassa Final,Com NaNO3,C2,0.947
 Biomassa Final,Com NaNO3,C2,0.112
 Biomassa Final,Com NaNO3,C2,0.121
@@ -128,25 +129,25 @@ Biomassa Final,Sem NaNO3,C3,0.239
 Biomassa Final,Sem NaNO3,C3,0.376
 Biomassa Final,Sem NaNO3,C3,0.099
 Biomassa Final,Sem NaNO3,C3,0.722
-Biomassa Final,Com NaNO3,C3,0.643
-Biomassa Final,Com NaNO3,C3,0.617
-Biomassa Final,Com NaNO3,C3,0.2
-Biomassa Final,Com NaNO3,C3,0.108
-Biomassa Final,Com NaNO3,C3,1.16
-Biomassa Final,Com NaNO3,C3,0.947
-Biomassa Final,Com NaNO3,C3,0.112
+Biomassa Final,Com NaNO3,C3,0.216
+Biomassa Final,Com NaNO3,C3,1.561
+Biomassa Final,Com NaNO3,C3,1.84
+Biomassa Final,Com NaNO3,C3,1.713
+Biomassa Final,Com NaNO3,C3,0.382
+Biomassa Final,Com NaNO3,C3,0.312
+Biomassa Final,Com NaNO3,C3,0.294
 Biomassa Final,Com NaNO3,C3,0.283
 Biomassa Final,Com NaNO3,C3,0.065
 Biomassa Final,Com NaNO3,C3,1.671
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.4903
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.39
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.4583
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.599
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.5013
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.3953
-PAM Final (Fv/Fm),Sem NaNO3,C3,0.3537
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.2907
 PAM Final (Fv/Fm),Sem NaNO3,C3,0.3417
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.112
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.276
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.222
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.4097
 PAM Final (Fv/Fm),Sem NaNO3,C3,0.1957
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.1823
+PAM Final (Fv/Fm),Sem NaNO3,C3,0.1563
 PAM Final (Fv/Fm),Sem NaNO3,C3,0.6143
 PAM Final (Fv/Fm),Com NaNO3,C3,0.295
 PAM Final (Fv/Fm),Com NaNO3,C3,0.4313

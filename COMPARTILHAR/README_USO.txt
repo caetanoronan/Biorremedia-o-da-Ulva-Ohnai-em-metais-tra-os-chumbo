@@ -16,11 +16,13 @@ GUIA DE USO - PACOTE DE DASHBOARDS E RELATORIOS
 1. Copie o arquivo Pacote_HTML_Offline.zip para o computador de destino.
 2. Extraia o .zip em uma pasta (nao abra os arquivos diretamente dentro do .zip).
 3. Entre na pasta extraida.
-4. Abra o arquivo Relatorio_Final_Biorremediacao.html no navegador.
+4. Abra o arquivo Central_Biorremediacao.html no navegador.
 5. Use os links internos para abrir os demais dashboards e relatorios.
+6. Se preferir, o Relatorio_Final_Biorremediacao.html continua disponivel como narrativa completa.
 
 4) ARQUIVOS PRINCIPAIS
-- Relatorio_Final_Biorremediacao.html (ponto de entrada recomendado)
+- Central_Biorremediacao.html (ponto de entrada recomendado)
+- Relatorio_Final_Biorremediacao.html
 - Dashboard_Biomassa_COM_NaNO3.html
 - Dashboard_PAM.html
 - Dashboard_Consolidado_Biorremediacao.html
